@@ -284,24 +284,50 @@
       let currentLevel = 1;
       let cumulativeTime = 0;
       let levelStartTime = 0;
+      let levelEndsAt = 0; // performance.now timestamp
       let waitingForStart = true;
+
+      // DPR variables
+      let dpr = 1;
+      function cssWidth() { return canvas.width / dpr; }
+      function cssHeight() { return canvas.height / dpr; }
 
       // Game statistics
       let totalBalloonsPopped = 0;
       let currentGameBalloons = 0;
       let gameStartTime = 0;
 
-      // Canvas resizing function
+      // Canvas resizing with DPR scaling
       function resizeCanvas() {
         const container = document.getElementById("gameContainer");
         const rect = container.getBoundingClientRect();
-        canvas.width = rect.width - 6; // Account for border
-        canvas.height = rect.height - 6; // Account for border
+
+        dpr = Math.max(1, window.devicePixelRatio || 1);
+        const cssW = Math.max(0, rect.width - 6);
+        const cssH = Math.max(0, rect.height - 6);
+
+        // Set CSS size
+        canvas.style.width = cssW + "px";
+        canvas.style.height = cssH + "px";
+
+        // Backing store in device pixels
+        canvas.width = Math.floor(cssW * dpr);
+        canvas.height = Math.floor(cssH * dpr);
+
+        // Scale the context so drawing uses CSS-pixel coordinates
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
         // Recreate star field when canvas resizes
         if (stars.length > 0) {
           createStarField();
         }
+
+        // Keep balloons within new bounds (in CSS px)
+        balloons.forEach(b => {
+          const w = cssWidth(), h = cssHeight();
+          if (b.x + b.radius > w) b.x = w - b.radius;
+          if (b.y + b.radius > h) b.y = h - b.radius;
+        });
       }
 
       // Level system functions
@@ -442,13 +468,12 @@
         levelStartElement.style.display = "none";
         hideScorecard();
         hideGameUI(); // Hide UI during gameplay
-        levelStartTime = Date.now();
-
-        // Set game start time on first level
+        levelStartTime = performance.now();
         if (currentLevel === 1) {
-          gameStartTime = Date.now();
+          gameStartTime = performance.now();
           currentGameBalloons = 0;
         }
+
 
         startGame();
       }
@@ -456,15 +481,13 @@
       // Create star field background
       function createStarField() {
         stars = [];
-        // Responsive star count based on canvas area
-        const starDensity = 0.0002; // stars per pixel
-        const starCount = Math.floor(
-          canvas.width * canvas.height * starDensity
-        );
+        const w = cssWidth(), h = cssHeight();
+        const starDensity = 0.0002; // per pixel (CSS px)
+        const starCount = Math.floor(w * h * starDensity);
         for (let i = 0; i < starCount; i++) {
           stars.push({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
+            x: Math.random() * w,
+            y: Math.random() * h,
             brightness: Math.random() * 0.8 + 0.2,
             size: Math.random() * 2 + 1,
           });
@@ -475,6 +498,7 @@
       function startGame() {
         gameRunning = true;
         gameTime = 20;
+        levelEndsAt = performance.now() + gameTime * 1000;
         balloons = [];
         gameOverElement.style.display = "none";
 
@@ -504,46 +528,40 @@
           "#85C1E9",
         ];
 
+        const w = cssWidth(), h = cssHeight();
         for (let i = 0; i < balloonCount; i++) {
           const radius =
             Math.random() * (sizeRange.max - sizeRange.min) + sizeRange.min;
-          const x = Math.random() * (canvas.width - radius * 2) + radius;
-          const y = Math.random() * (canvas.height - radius * 2) + radius;
+          const x = Math.random() * (w - radius * 2) + radius;
+          const y = Math.random() * (h - radius * 2) + radius;
           const color = colors[Math.floor(Math.random() * colors.length)];
 
           balloons.push(new Balloon(x, y, radius, color));
         }
 
         updateBalloonCount();
-
-        // Start game timer
-        gameTimer = setInterval(() => {
-          gameTime--;
-          timerElement.textContent = gameTime;
-
-          if (gameTime <= 0) {
-            endGame(false); // Game wins (player loses)
-          }
-        }, 1000);
-
-        // Start game loop
         gameLoop();
       }
 
-      // Main game loop
-      function gameLoop() {
+      // Main game loop with performance timing
+      function gameLoop(now = performance.now()) {
         if (!gameRunning) return;
 
-        // Update cumulative time display
-        const currentTime = Date.now() - levelStartTime;
+        // Timers
+        const remaining = Math.max(0, Math.ceil((levelEndsAt - now) / 1000));
+        timerElement.textContent = remaining;
+
+        const levelElapsedMs = now - levelStartTime;
         cumulativeTimerElement.textContent = Math.floor(
-          (cumulativeTime + currentTime) / 1000
+          (cumulativeTime + levelElapsedMs) / 1000
         );
 
-        // Clear canvas with transparency to show background image
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // End on timeout
+        if (remaining === 0) { endGame(false); return; }
 
-        // Update and draw balloons
+        // Clear & draw
+        ctx.clearRect(0, 0, cssWidth(), cssHeight());
+        drawStars();
         updateBalloons();
         drawBalloons();
 
@@ -562,110 +580,70 @@
 
       // Update balloon positions and handle collisions
       function updateBalloons() {
-        for (let i = balloons.length - 1; i >= 0; i--) {
-          const balloon = balloons[i];
+        const w = cssWidth(), h = cssHeight();
 
-          if (balloon.popping) {
-            balloon.popAnimation += 0.3;
-            if (balloon.popAnimation >= 1) {
+        for (let i = balloons.length - 1; i >= 0; i--) {
+          const b = balloons[i];
+
+          if (b.popping) {
+            b.popAnimation += 0.3;
+            if (b.popAnimation >= 1) {
               balloons.splice(i, 1);
               updateBalloonCount();
-
-              // Check win condition
-              if (balloons.length === 0) {
-                endGame(true); // Player wins
-              }
+              if (balloons.length === 0) endGame(true);
             }
             continue;
           }
 
-          // Update position
-          balloon.x += balloon.vx;
-          balloon.y += balloon.vy;
+          b.x += b.vx; b.y += b.vy;
 
-          // Wall collision detection
-          if (
-            balloon.x - balloon.radius <= 0 ||
-            balloon.x + balloon.radius >= canvas.width
-          ) {
-            balloon.vx = -balloon.vx;
-            balloon.x = Math.max(
-              balloon.radius,
-              Math.min(canvas.width - balloon.radius, balloon.x)
-            );
+          // Wall collisions (CSS px bounds)
+          if (b.x - b.radius <= 0 || b.x + b.radius >= w) {
+            b.vx = -b.vx;
+            b.x = Math.max(b.radius, Math.min(w - b.radius, b.x));
           }
-          if (
-            balloon.y - balloon.radius <= 0 ||
-            balloon.y + balloon.radius >= canvas.height
-          ) {
-            balloon.vy = -balloon.vy;
-            balloon.y = Math.max(
-              balloon.radius,
-              Math.min(canvas.height - balloon.radius, balloon.y)
-            );
+          if (b.y - b.radius <= 0 || b.y + b.radius >= h) {
+            b.vy = -b.vy;
+            b.y = Math.max(b.radius, Math.min(h - b.radius, b.y));
           }
 
-          // Balloon-to-balloon collision detection
+          // Balloon-to-balloon collisions
           for (let j = i + 1; j < balloons.length; j++) {
-            const otherBalloon = balloons[j];
-            if (otherBalloon.popping) continue;
+            const o = balloons[j];
+            if (o.popping) continue;
 
-            const dx = balloon.x - otherBalloon.x;
-            const dy = balloon.y - otherBalloon.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            const minDistance = balloon.radius + otherBalloon.radius;
+            const dx = b.x - o.x;
+            const dy = b.y - o.y;
+            const dist = Math.hypot(dx, dy);
+            const minDist = b.radius + o.radius;
 
-            if (distance < minDistance) {
-              // Separate overlapping balloons
-              const overlap = minDistance - distance;
-              const separationX = (dx / distance) * (overlap * 0.5);
-              const separationY = (dy / distance) * (overlap * 0.5);
+            if (dist < minDist && dist > 0) {
+              // Separate overlap
+              const overlap = minDist - dist;
+              const nx = dx / dist, ny = dy / dist;
+              const sepX = nx * (overlap * 0.5);
+              const sepY = ny * (overlap * 0.5);
+              b.x += sepX; b.y += sepY;
+              o.x -= sepX; o.y -= sepY;
 
-              balloon.x += separationX;
-              balloon.y += separationY;
-              otherBalloon.x -= separationX;
-              otherBalloon.y -= separationY;
+              // Relative velocity along normal
+              const rvx = b.vx - o.vx;
+              const rvy = b.vy - o.vy;
+              const relSpeed = rvx * nx + rvy * ny;
 
-              // Use individual speeds for each balloon
-              const speed1 = balloon.individualSpeed;
-              const speed2 = otherBalloon.individualSpeed;
+              // FIX: resolve only if approaching (negative)
+              if (relSpeed < 0) {
+                // Elastic along normal (unit mass)
+                b.vx -= relSpeed * nx;
+                b.vy -= relSpeed * ny;
+                o.vx += relSpeed * nx;
+                o.vy += relSpeed * ny;
 
-              // Calculate collision normal
-              const normalX = dx / distance;
-              const normalY = dy / distance;
-
-              // Calculate relative velocity
-              const relativeVx = balloon.vx - otherBalloon.vx;
-              const relativeVy = balloon.vy - otherBalloon.vy;
-
-              // Calculate relative velocity in collision normal direction
-              const relativeSpeed = relativeVx * normalX + relativeVy * normalY;
-
-              // Only resolve if objects are approaching
-              if (relativeSpeed > 0) {
-                // Calculate new velocities (elastic collision)
-                balloon.vx -= relativeSpeed * normalX;
-                balloon.vy -= relativeSpeed * normalY;
-                otherBalloon.vx += relativeSpeed * normalX;
-                otherBalloon.vy += relativeSpeed * normalY;
-
-                // Normalize to maintain original speeds
-                const newSpeed1 = Math.sqrt(
-                  balloon.vx * balloon.vx + balloon.vy * balloon.vy
-                );
-                const newSpeed2 = Math.sqrt(
-                  otherBalloon.vx * otherBalloon.vx +
-                    otherBalloon.vy * otherBalloon.vy
-                );
-
-                if (newSpeed1 > 0) {
-                  balloon.vx = (balloon.vx / newSpeed1) * speed1;
-                  balloon.vy = (balloon.vy / newSpeed1) * speed1;
-                }
-                if (newSpeed2 > 0) {
-                  otherBalloon.vx = (otherBalloon.vx / newSpeed2) * speed2;
-                  otherBalloon.vy = (otherBalloon.vy / newSpeed2) * speed2;
-                }
+                // Renormalize to keep their individual speeds
+                const ns1 = Math.hypot(b.vx, b.vy);
+                const ns2 = Math.hypot(o.vx, o.vy);
+                if (ns1 > 0) { b.vx = (b.vx / ns1) * b.individualSpeed; b.vy = (b.vy / ns1) * b.individualSpeed; }
+                if (ns2 > 0) { o.vx = (o.vx / ns2) * o.individualSpeed; o.vy = (o.vy / ns2) * o.individualSpeed; }
               }
             }
           }
@@ -736,40 +714,30 @@
         }
       }
 
-      // Handle mouse clicks
+      // Handle mouse clicks (CSS px coords)
       canvas.addEventListener("click", (event) => {
         if (!gameRunning) return;
 
-        // Get precise canvas coordinates accounting for scaling
         const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
-        const scaleY = canvas.height / rect.height;
+        // With DPR transform set, internal coords are CSS px:
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
 
-        const x = (event.clientX - rect.left) * scaleX;
-        const y = (event.clientY - rect.top) * scaleY;
+        for (const b of balloons) {
+          if (b.popping) continue;
+          const dx = x - b.x, dy = y - b.y;
+          const distance = Math.hypot(dx, dy);
 
-        // Check if click hits any balloon
-        for (const balloon of balloons) {
-          if (balloon.popping) continue;
-
-          const dx = x - balloon.x;
-          const dy = y - balloon.y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-
-          // Add minimum clickable size while staying close to balloon size
-          const minClickRadius = 15; // Minimum 15px hit radius
-          const clickRadius = Math.max(balloon.radius, minClickRadius);
-          const radiusBonus = Math.min(
-            clickRadius - balloon.radius,
-            balloon.radius * 0.3
-          ); // Max 30% bonus
-          const effectiveRadius = balloon.radius + radiusBonus;
+          const minClickRadius = 15;
+          const clickRadius = Math.max(b.radius, minClickRadius);
+          const radiusBonus = Math.min(clickRadius - b.radius, b.radius * 0.3);
+          const effectiveRadius = b.radius + radiusBonus;
 
           if (distance <= effectiveRadius) {
-            balloon.popping = true;
-            balloon.popAnimation = 0;
-            currentGameBalloons++; // Track balloons popped in current game
-            break; // Only pop one balloon per click
+            b.popping = true;
+            b.popAnimation = 0;
+            currentGameBalloons++;
+            break;
           }
         }
       });
@@ -780,15 +748,12 @@
         balloonCountElement.textContent = activeBalloons;
       }
 
-      // End the game
       function endGame(playerWon) {
         gameRunning = false;
-        clearInterval(gameTimer);
-        cancelAnimationFrame(animationId);
-        showGameUI(); // Show UI when game ends
+        if (animationId) cancelAnimationFrame(animationId);
+        showGameUI();
 
-        // Add level time to cumulative time
-        const levelTime = Date.now() - levelStartTime;
+        const levelTime = performance.now() - levelStartTime;
         cumulativeTime += levelTime;
         cumulativeTimerElement.textContent = Math.floor(cumulativeTime / 1000);
 
