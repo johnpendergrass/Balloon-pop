@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Balloon Popping Game</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        width: 100vw;
+        background-color: #001122;
+        font-family: Arial, sans-serif;
+        overflow: hidden;
+      }
+
+      #gameContainer {
+        position: relative;
+        width: calc(100vw - 20px);
+        height: calc(100vh - 20px);
+        margin: 10px;
+        border: 3px solid #ffffff;
+        border-radius: 15px;
+        box-shadow: 0 0 30px rgba(255, 255, 255, 0.4);
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+      }
+
+      #gameCanvas {
+        display: block;
+        cursor: crosshair;
+        width: 100%;
+        height: 100%;
+        border-radius: 12px;
+        background: transparent;
+      }
+
+      #gameUI {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        color: white;
+        font-size: clamp(18px, 3vw, 32px);
+        font-weight: bold;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        z-index: 10;
+        background: rgba(0, 0, 0, 0.3);
+        padding: 10px 15px;
+        border-radius: 10px;
+        backdrop-filter: blur(5px);
+      }
+
+      #gameOver {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: clamp(24px, 5vw, 48px);
+        font-weight: bold;
+        text-align: center;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        z-index: 20;
+        display: none;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 30px;
+        border-radius: 15px;
+        backdrop-filter: blur(10px);
+      }
+
+      .restart-btn {
+        margin-top: 20px;
+        padding: clamp(8px, 2vw, 15px) clamp(15px, 3vw, 25px);
+        font-size: clamp(14px, 2.5vw, 20px);
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      }
+
+      .restart-btn:hover {
+        background-color: #45a049;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+      }
+
+      #speedControl {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: white;
+        font-size: clamp(12px, 2vw, 18px);
+        font-weight: bold;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        z-index: 10;
+        background: rgba(0, 0, 0, 0.3);
+        padding: 10px 20px;
+        border-radius: 10px;
+        backdrop-filter: blur(5px);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      #speedSlider {
+        width: 100px;
+        margin: 0 5px;
+      }
+
+      #levelStart {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: clamp(20px, 4vw, 32px);
+        font-weight: bold;
+        text-align: center;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        z-index: 25;
+        background: rgba(0, 0, 0, 0.8);
+        padding: 30px;
+        border-radius: 15px;
+        backdrop-filter: blur(10px);
+      }
+
+      #startButton {
+        margin-top: 20px;
+        padding: clamp(10px, 2vw, 15px) clamp(20px, 4vw, 30px);
+        font-size: clamp(16px, 3vw, 24px);
+        background-color: #2196f3;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      }
+
+      #startButton:hover {
+        background-color: #1976d2;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+      }
+
+      #scorecard {
+        position: absolute;
+        top: 50%;
+        left: 20%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.9);
+        color: white;
+        padding: 20px;
+        border-radius: 15px;
+        backdrop-filter: blur(15px);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        z-index: 15;
+        display: none;
+        width: 300px;
+        max-height: 70vh;
+        overflow-y: auto;
+      }
+
+      #scorecardTitle {
+        font-size: clamp(24px, 4vw, 36px);
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 20px;
+        color: #ffd700;
+      }
+
+      #scorecard h3 {
+        color: #4ecdc4;
+        margin: 15px 0 10px 0;
+        font-size: clamp(16px, 3vw, 20px);
+      }
+
+      #scorecard div:not(h3):not(#scorecardTitle) {
+        margin: 8px 0;
+        font-size: clamp(14px, 2.5vw, 18px);
+      }
+
+      #leaderboardList {
+        margin-top: 10px;
+      }
+
+      .leaderboard-entry {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 8px 12px;
+        margin: 5px 0;
+        border-radius: 8px;
+        border-left: 4px solid #ffd700;
+      }
+
+      .leaderboard-entry:nth-child(1) {
+        border-left-color: #ffd700;
+      }
+      .leaderboard-entry:nth-child(2) {
+        border-left-color: #c0c0c0;
+      }
+      .leaderboard-entry:nth-child(3) {
+        border-left-color: #cd7f32;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="gameContainer">
+      <canvas id="gameCanvas"></canvas>
+      <div id="gameUI">
+        <div>Level: <span id="levelDisplay">1</span></div>
+        <div>Time: <span id="timer">20</span></div>
+        <div>Total Time: <span id="cumulativeTimer">0</span>s</div>
+        <div>Balloons: <span id="balloonCount">0</span></div>
+      </div>
+      <div id="speedControl">
+        <label for="speedSlider">Speed: </label>
+        <input
+          type="range"
+          id="speedSlider"
+          min="0.5"
+          max="5.0"
+          step="0.1"
+          value="1.5"
+        />
+        <span id="speedValue">1.5</span>
+      </div>
+      <div id="levelStart">
+        <div id="levelStartText">Level 1 Ready</div>
+        <button id="startButton" onclick="startLevel()">Start Level</button>
+      </div>
+      <div id="gameOver">
+        <div id="gameOverText"></div>
+        <button class="restart-btn" onclick="resetGame()">Play Again</button>
+      </div>
+      <div id="scorecard">
+        <div id="scorecardTitle">Game Statistics</div>
+        <div id="currentStats">
+          <h3>Current Game</h3>
+          <div>Level Reached: <span id="scorecardCurrentLevel">1</span></div>
+          <div>Balloons Popped: <span id="currentBalloons">0</span></div>
+          <div>Time Played: <span id="currentTime">0</span>s</div>
+        </div>
+        <div id="totalStats">
+          <h3>Total Statistics</h3>
+          <div>Total Balloons Popped: <span id="totalBalloons">0</span></div>
+          <div>Total Time Played: <span id="totalTime">0</span>s</div>
+        </div>
+        <div id="leaderboard">
+          <h3>Top 5 Games</h3>
+          <div id="leaderboardList"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Game variables
+      const canvas = document.getElementById("gameCanvas");
+      const ctx = canvas.getContext("2d");
+      const timerElement = document.getElementById("timer");
+      const balloonCountElement = document.getElementById("balloonCount");
+      const gameOverElement = document.getElementById("gameOver");
+      const gameOverText = document.getElementById("gameOverText");
+      const levelDisplayElement = document.getElementById("levelDisplay");
+      const cumulativeTimerElement = document.getElementById("cumulativeTimer");
+      const speedSlider = document.getElementById("speedSlider");
+      const speedValue = document.getElementById("speedValue");
+      const levelStartElement = document.getElementById("levelStart");
+      const levelStartText = document.getElementById("levelStartText");
+      const startButton = document.getElementById("startButton");
+
+      let gameRunning = false;
+      let gameTime = 20;
+      let balloons = [];
+      let stars = [];
+      let animationId;
+      let gameTimer;
+      let balloonSpeed = 1.5; // Default speed (5.0 is max)
+      let currentLevel = 1;
+      let cumulativeTime = 0;
+      let levelStartTime = 0;
+      let waitingForStart = true;
+
+      // Game statistics
+      let totalBalloonsPopped = 0;
+      let currentGameBalloons = 0;
+      let gameStartTime = 0;
+
+      // Canvas resizing function
+      function resizeCanvas() {
+        const container = document.getElementById("gameContainer");
+        const rect = container.getBoundingClientRect();
+        canvas.width = rect.width - 6; // Account for border
+        canvas.height = rect.height - 6; // Account for border
+
+        // Recreate star field when canvas resizes
+        if (stars.length > 0) {
+          createStarField();
+        }
+      }
+
+      // Level system functions
+      function getLevelBalloonCount(level) {
+        // Level 1: 10 balloons, Level 10: 20 balloons
+        return Math.floor(10 + ((level - 1) * (20 - 10)) / 9);
+      }
+
+      function getLevelBalloonSize(level) {
+        // Level 1: medium-large (40-60px), Level 10: small-medium (15-35px)
+        const baseMinRadius = 40 - ((level - 1) * (40 - 15)) / 9;
+        const baseMaxRadius = 60 - ((level - 1) * (60 - 35)) / 9;
+
+        // Apply size variation (0.75x to 1.25x) and then increase by 50%
+        const minRadius = Math.floor(baseMinRadius * 0.75 * 1.5); // 50% larger
+        const maxRadius = Math.floor(baseMaxRadius * 1.25 * 1.5); // 50% larger
+
+        return { min: minRadius, max: maxRadius };
+      }
+
+      function getLevelSpeed(level, baseSpeed) {
+        // Linear progression from 1.5 at level 1 to 5.0 at level 10
+        const levelMultiplier = 1.5 + ((level - 1) * (5.0 - 1.5)) / 9; // 1.5 to 5.0 over 9 steps
+        return (baseSpeed / 1.5) * levelMultiplier; // Adjust based on slider position
+      }
+
+      function updateSpeedSlider() {
+        speedSlider.addEventListener("input", function () {
+          balloonSpeed = parseFloat(this.value);
+          const effectiveSpeed = getLevelSpeed(currentLevel, balloonSpeed);
+          speedValue.textContent = `${balloonSpeed.toFixed(
+            1
+          )} (${effectiveSpeed.toFixed(1)})`;
+
+          // Update existing balloon speeds while maintaining their individual speed ratios
+          balloons.forEach((balloon) => {
+            if (!balloon.popping) {
+              const currentSpeed = Math.sqrt(
+                balloon.vx * balloon.vx + balloon.vy * balloon.vy
+              );
+              if (currentSpeed > 0) {
+                // Recalculate this balloon's individual speed with new base speed
+                const newBaseSpeed = getLevelSpeed(currentLevel, balloonSpeed);
+                const speedRatio =
+                  balloon.individualSpeed / getLevelSpeed(currentLevel, 1.5); // Original ratio
+                balloon.individualSpeed = newBaseSpeed * speedRatio;
+
+                // Update velocity to match new individual speed
+                const ratio = balloon.individualSpeed / currentSpeed;
+                balloon.vx *= ratio;
+                balloon.vy *= ratio;
+              }
+            }
+          });
+        });
+      }
+
+      // Balloon class will be implemented next
+      class Balloon {
+        constructor(x, y, radius, color) {
+          this.x = x;
+          this.y = y;
+          this.radius = radius;
+          this.color = color;
+
+          // Individual speed variation (0.75x to 1.25x of level speed)
+          const baseSpeed = getLevelSpeed(currentLevel, balloonSpeed);
+          const speedMultiplier = 0.75 + Math.random() * 0.5; // 0.75 to 1.25
+          this.individualSpeed = baseSpeed * speedMultiplier;
+
+          this.vx = (Math.random() - 0.5) * this.individualSpeed; // Random velocity x
+          this.vy = (Math.random() - 0.5) * this.individualSpeed; // Random velocity y
+
+          // String color (varied like real foil strings)
+          const stringColors = [
+            "#FFD700",
+            "#C0C0C0",
+            "#FF6B6B",
+            "#4ECDC4",
+            "#45B7D1",
+            "#96CEB4",
+            "#DDA0DD",
+            "#F7DC6F",
+          ];
+          this.stringColor =
+            stringColors[Math.floor(Math.random() * stringColors.length)];
+
+          this.popping = false;
+          this.popAnimation = 0;
+        }
+      }
+
+      // Initialize the game
+      function init() {
+        resizeCanvas();
+        createStarField();
+        updateSpeedSlider();
+        loadStatistics();
+
+        // Initialize speed display
+        const effectiveSpeed = getLevelSpeed(currentLevel, balloonSpeed);
+        speedValue.textContent = `${balloonSpeed.toFixed(
+          1
+        )} (${effectiveSpeed.toFixed(1)})`;
+
+        showLevelStart();
+
+        // Add resize event listener
+        window.addEventListener("resize", () => {
+          resizeCanvas();
+          // Adjust balloon positions if they're outside new boundaries
+          balloons.forEach((balloon) => {
+            if (balloon.x + balloon.radius > canvas.width) {
+              balloon.x = canvas.width - balloon.radius;
+            }
+            if (balloon.y + balloon.radius > canvas.height) {
+              balloon.y = canvas.height - balloon.radius;
+            }
+          });
+        });
+      }
+
+      // Show level start screen
+      function showLevelStart() {
+        waitingForStart = true;
+        levelStartText.textContent = `Level ${currentLevel} Ready`;
+        levelStartElement.style.display = "block";
+        gameOverElement.style.display = "none";
+        showGameUI(); // Show UI during splash screen
+
+        // Show scorecard before starting
+        showScorecard();
+      }
+
+      // Start level function
+      function startLevel() {
+        waitingForStart = false;
+        levelStartElement.style.display = "none";
+        hideScorecard();
+        hideGameUI(); // Hide UI during gameplay
+        levelStartTime = Date.now();
+
+        // Set game start time on first level
+        if (currentLevel === 1) {
+          gameStartTime = Date.now();
+          currentGameBalloons = 0;
+        }
+
+        startGame();
+      }
+
+      // Create star field background
+      function createStarField() {
+        stars = [];
+        // Responsive star count based on canvas area
+        const starDensity = 0.0002; // stars per pixel
+        const starCount = Math.floor(
+          canvas.width * canvas.height * starDensity
+        );
+        for (let i = 0; i < starCount; i++) {
+          stars.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            brightness: Math.random() * 0.8 + 0.2,
+            size: Math.random() * 2 + 1,
+          });
+        }
+      }
+
+      // Start/restart the game
+      function startGame() {
+        gameRunning = true;
+        gameTime = 20;
+        balloons = [];
+        gameOverElement.style.display = "none";
+
+        // Update UI displays
+        levelDisplayElement.textContent = currentLevel;
+        cumulativeTimerElement.textContent = Math.floor(cumulativeTime / 1000);
+
+        // Update speed display to show effective speed
+        const effectiveSpeed = getLevelSpeed(currentLevel, balloonSpeed);
+        speedValue.textContent = `${balloonSpeed.toFixed(
+          1
+        )} (${effectiveSpeed.toFixed(1)})`;
+
+        // Create balloons based on current level
+        const balloonCount = getLevelBalloonCount(currentLevel);
+        const sizeRange = getLevelBalloonSize(currentLevel);
+        const colors = [
+          "#FF6B6B",
+          "#4ECDC4",
+          "#45B7D1",
+          "#96CEB4",
+          "#FFEAA7",
+          "#DDA0DD",
+          "#98D8C8",
+          "#F7DC6F",
+          "#BB8FCE",
+          "#85C1E9",
+        ];
+
+        for (let i = 0; i < balloonCount; i++) {
+          const radius =
+            Math.random() * (sizeRange.max - sizeRange.min) + sizeRange.min;
+          const x = Math.random() * (canvas.width - radius * 2) + radius;
+          const y = Math.random() * (canvas.height - radius * 2) + radius;
+          const color = colors[Math.floor(Math.random() * colors.length)];
+
+          balloons.push(new Balloon(x, y, radius, color));
+        }
+
+        updateBalloonCount();
+
+        // Start game timer
+        gameTimer = setInterval(() => {
+          gameTime--;
+          timerElement.textContent = gameTime;
+
+          if (gameTime <= 0) {
+            endGame(false); // Game wins (player loses)
+          }
+        }, 1000);
+
+        // Start game loop
+        gameLoop();
+      }
+
+      // Main game loop
+      function gameLoop() {
+        if (!gameRunning) return;
+
+        // Update cumulative time display
+        const currentTime = Date.now() - levelStartTime;
+        cumulativeTimerElement.textContent = Math.floor(
+          (cumulativeTime + currentTime) / 1000
+        );
+
+        // Clear canvas with transparency to show background image
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Update and draw balloons
+        updateBalloons();
+        drawBalloons();
+
+        animationId = requestAnimationFrame(gameLoop);
+      }
+
+      // Draw star field
+      function drawStars() {
+        for (const star of stars) {
+          ctx.fillStyle = `rgba(255, 255, 255, ${star.brightness})`;
+          ctx.beginPath();
+          ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // Update balloon positions and handle collisions
+      function updateBalloons() {
+        for (let i = balloons.length - 1; i >= 0; i--) {
+          const balloon = balloons[i];
+
+          if (balloon.popping) {
+            balloon.popAnimation += 0.3;
+            if (balloon.popAnimation >= 1) {
+              balloons.splice(i, 1);
+              updateBalloonCount();
+
+              // Check win condition
+              if (balloons.length === 0) {
+                endGame(true); // Player wins
+              }
+            }
+            continue;
+          }
+
+          // Update position
+          balloon.x += balloon.vx;
+          balloon.y += balloon.vy;
+
+          // Wall collision detection
+          if (
+            balloon.x - balloon.radius <= 0 ||
+            balloon.x + balloon.radius >= canvas.width
+          ) {
+            balloon.vx = -balloon.vx;
+            balloon.x = Math.max(
+              balloon.radius,
+              Math.min(canvas.width - balloon.radius, balloon.x)
+            );
+          }
+          if (
+            balloon.y - balloon.radius <= 0 ||
+            balloon.y + balloon.radius >= canvas.height
+          ) {
+            balloon.vy = -balloon.vy;
+            balloon.y = Math.max(
+              balloon.radius,
+              Math.min(canvas.height - balloon.radius, balloon.y)
+            );
+          }
+
+          // Balloon-to-balloon collision detection
+          for (let j = i + 1; j < balloons.length; j++) {
+            const otherBalloon = balloons[j];
+            if (otherBalloon.popping) continue;
+
+            const dx = balloon.x - otherBalloon.x;
+            const dy = balloon.y - otherBalloon.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const minDistance = balloon.radius + otherBalloon.radius;
+
+            if (distance < minDistance) {
+              // Separate overlapping balloons
+              const overlap = minDistance - distance;
+              const separationX = (dx / distance) * (overlap * 0.5);
+              const separationY = (dy / distance) * (overlap * 0.5);
+
+              balloon.x += separationX;
+              balloon.y += separationY;
+              otherBalloon.x -= separationX;
+              otherBalloon.y -= separationY;
+
+              // Use individual speeds for each balloon
+              const speed1 = balloon.individualSpeed;
+              const speed2 = otherBalloon.individualSpeed;
+
+              // Calculate collision normal
+              const normalX = dx / distance;
+              const normalY = dy / distance;
+
+              // Calculate relative velocity
+              const relativeVx = balloon.vx - otherBalloon.vx;
+              const relativeVy = balloon.vy - otherBalloon.vy;
+
+              // Calculate relative velocity in collision normal direction
+              const relativeSpeed = relativeVx * normalX + relativeVy * normalY;
+
+              // Only resolve if objects are approaching
+              if (relativeSpeed > 0) {
+                // Calculate new velocities (elastic collision)
+                balloon.vx -= relativeSpeed * normalX;
+                balloon.vy -= relativeSpeed * normalY;
+                otherBalloon.vx += relativeSpeed * normalX;
+                otherBalloon.vy += relativeSpeed * normalY;
+
+                // Normalize to maintain original speeds
+                const newSpeed1 = Math.sqrt(
+                  balloon.vx * balloon.vx + balloon.vy * balloon.vy
+                );
+                const newSpeed2 = Math.sqrt(
+                  otherBalloon.vx * otherBalloon.vx +
+                    otherBalloon.vy * otherBalloon.vy
+                );
+
+                if (newSpeed1 > 0) {
+                  balloon.vx = (balloon.vx / newSpeed1) * speed1;
+                  balloon.vy = (balloon.vy / newSpeed1) * speed1;
+                }
+                if (newSpeed2 > 0) {
+                  otherBalloon.vx = (otherBalloon.vx / newSpeed2) * speed2;
+                  otherBalloon.vy = (otherBalloon.vy / newSpeed2) * speed2;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // Draw balloons with strings
+      function drawBalloons() {
+        for (const balloon of balloons) {
+          if (balloon.popping) {
+            // Pop animation - stretch and squash
+            const scale =
+              balloon.popAnimation < 0.3
+                ? 1 - balloon.popAnimation * 2 // Shrink
+                : 1 + (balloon.popAnimation - 0.3) * 8; // Explode
+
+            if (balloon.popAnimation < 0.7) {
+              ctx.save();
+              ctx.translate(balloon.x, balloon.y);
+              ctx.scale(scale, scale);
+
+              // Draw balloon
+              ctx.fillStyle = balloon.color;
+              ctx.beginPath();
+              ctx.arc(0, 0, balloon.radius, 0, Math.PI * 2);
+              ctx.fill();
+
+              ctx.restore();
+            }
+          } else {
+            // Draw string (longer, thicker, colored wavy line)
+            ctx.strokeStyle = balloon.stringColor;
+            ctx.lineWidth = Math.max(4, balloon.radius * 0.12); // Thicker, scales with balloon size
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+            ctx.beginPath();
+            ctx.moveTo(balloon.x, balloon.y + balloon.radius);
+
+            const stringLength = balloon.radius * 1.5; // Longer strings
+            const segments = 12; // More segments for smoother curves
+            for (let i = 1; i <= segments; i++) {
+              const t = i / segments;
+              const waveIntensity = 4 + balloon.radius * 0.1; // Wave intensity scales with balloon
+              const x = balloon.x + Math.sin(t * Math.PI * 4) * waveIntensity;
+              const y = balloon.y + balloon.radius + t * stringLength;
+              ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+            // Draw balloon
+            ctx.fillStyle = balloon.color;
+            ctx.beginPath();
+            ctx.arc(balloon.x, balloon.y, balloon.radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Add highlight
+            ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
+            ctx.beginPath();
+            ctx.arc(
+              balloon.x - balloon.radius * 0.3,
+              balloon.y - balloon.radius * 0.3,
+              balloon.radius * 0.3,
+              0,
+              Math.PI * 2
+            );
+            ctx.fill();
+          }
+        }
+      }
+
+      // Handle mouse clicks
+      canvas.addEventListener("click", (event) => {
+        if (!gameRunning) return;
+
+        // Get precise canvas coordinates accounting for scaling
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+
+        const x = (event.clientX - rect.left) * scaleX;
+        const y = (event.clientY - rect.top) * scaleY;
+
+        // Check if click hits any balloon
+        for (const balloon of balloons) {
+          if (balloon.popping) continue;
+
+          const dx = x - balloon.x;
+          const dy = y - balloon.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+
+          // Add minimum clickable size while staying close to balloon size
+          const minClickRadius = 15; // Minimum 15px hit radius
+          const clickRadius = Math.max(balloon.radius, minClickRadius);
+          const radiusBonus = Math.min(
+            clickRadius - balloon.radius,
+            balloon.radius * 0.3
+          ); // Max 30% bonus
+          const effectiveRadius = balloon.radius + radiusBonus;
+
+          if (distance <= effectiveRadius) {
+            balloon.popping = true;
+            balloon.popAnimation = 0;
+            currentGameBalloons++; // Track balloons popped in current game
+            break; // Only pop one balloon per click
+          }
+        }
+      });
+
+      // Update balloon count display
+      function updateBalloonCount() {
+        const activeBalloons = balloons.filter((b) => !b.popping).length;
+        balloonCountElement.textContent = activeBalloons;
+      }
+
+      // End the game
+      function endGame(playerWon) {
+        gameRunning = false;
+        clearInterval(gameTimer);
+        cancelAnimationFrame(animationId);
+        showGameUI(); // Show UI when game ends
+
+        // Add level time to cumulative time
+        const levelTime = Date.now() - levelStartTime;
+        cumulativeTime += levelTime;
+        cumulativeTimerElement.textContent = Math.floor(cumulativeTime / 1000);
+
+        if (playerWon) {
+          if (currentLevel < 10) {
+            // Advance to next level
+            currentLevel++;
+            gameOverText.innerHTML = `Level ${
+              currentLevel - 1
+            } Complete!<br>Moving to Level ${currentLevel}`;
+            gameOverText.style.color = "#4CAF50";
+
+            // Auto-advance to next level after 2 seconds
+            setTimeout(() => {
+              gameOverElement.style.display = "none";
+              showLevelStart();
+            }, 2000);
+          } else {
+            // Game completed!
+            gameOverText.innerHTML = `🎉 Game Complete! 🎉<br>All 10 levels finished!<br>Total Time: ${Math.floor(
+              cumulativeTime / 1000
+            )}s`;
+            gameOverText.style.color = "#FFD700";
+            gameOverElement.style.display = "block";
+          }
+        } else {
+          gameOverText.innerHTML = `Level ${currentLevel} Failed!<br>Time ran out!`;
+          gameOverText.style.color = "#FF6B6B";
+          gameOverElement.style.display = "block";
+        }
+      }
+
+      // Reset game to level 1
+      function resetGame() {
+        // Save current game to leaderboard before resetting
+        if (currentLevel > 1 || currentGameBalloons > 0) {
+          saveGameToLeaderboard();
+        }
+
+        currentLevel = 1;
+        cumulativeTime = 0;
+        currentGameBalloons = 0;
+        cumulativeTimerElement.textContent = "0";
+        showLevelStart();
+      }
+
+      // Statistics and leaderboard functions
+      function loadStatistics() {
+        const stats = localStorage.getItem("balloonGameStats");
+        if (stats) {
+          const parsed = JSON.parse(stats);
+          totalBalloonsPopped = parsed.totalBalloonsPopped || 0;
+        }
+      }
+
+      function saveStatistics() {
+        const stats = {
+          totalBalloonsPopped: totalBalloonsPopped,
+          totalTimePlayed:
+            parseInt(localStorage.getItem("balloonGameTotalTime") || "0") +
+            Math.floor(cumulativeTime / 1000),
+        };
+        localStorage.setItem("balloonGameStats", JSON.stringify(stats));
+        localStorage.setItem(
+          "balloonGameTotalTime",
+          stats.totalTimePlayed.toString()
+        );
+      }
+
+      function saveGameToLeaderboard() {
+        const gameData = {
+          level: currentLevel,
+          balloons: currentGameBalloons,
+          time: Math.floor(cumulativeTime / 1000),
+          date: new Date().toLocaleDateString(),
+        };
+
+        let leaderboard = JSON.parse(
+          localStorage.getItem("balloonGameLeaderboard") || "[]"
+        );
+        leaderboard.push(gameData);
+
+        // Sort by level (descending), then by time (ascending)
+        leaderboard.sort((a, b) => {
+          if (a.level !== b.level) {
+            return b.level - a.level; // Higher level first
+          }
+          return a.time - b.time; // Lower time first for same level
+        });
+
+        // Keep only top 5
+        leaderboard = leaderboard.slice(0, 5);
+        localStorage.setItem(
+          "balloonGameLeaderboard",
+          JSON.stringify(leaderboard)
+        );
+
+        // Update total statistics
+        totalBalloonsPopped += currentGameBalloons;
+        saveStatistics();
+      }
+
+      function showScorecard() {
+        loadStatistics();
+
+        // Update current game stats
+        document.getElementById("scorecardCurrentLevel").textContent =
+          currentLevel;
+        document.getElementById("currentBalloons").textContent =
+          currentGameBalloons;
+        document.getElementById("currentTime").textContent = Math.floor(
+          cumulativeTime / 1000
+        );
+
+        // Update total stats
+        const totalTime = parseInt(
+          localStorage.getItem("balloonGameTotalTime") || "0"
+        );
+        document.getElementById("totalBalloons").textContent =
+          totalBalloonsPopped;
+        document.getElementById("totalTime").textContent = totalTime;
+
+        // Update leaderboard
+        const leaderboard = JSON.parse(
+          localStorage.getItem("balloonGameLeaderboard") || "[]"
+        );
+        const leaderboardList = document.getElementById("leaderboardList");
+
+        if (leaderboard.length === 0) {
+          leaderboardList.innerHTML =
+            '<div style="color: #888;">No games completed yet</div>';
+        } else {
+          leaderboardList.innerHTML = leaderboard
+            .map(
+              (game, index) =>
+                `<div class="leaderboard-entry">
+                        #${index + 1} - Level ${game.level} | ${
+                  game.balloons
+                } balloons | ${game.time}s | ${game.date}
+                    </div>`
+            )
+            .join("");
+        }
+
+        document.getElementById("scorecard").style.display = "block";
+      }
+
+      function hideScorecard() {
+        document.getElementById("scorecard").style.display = "none";
+      }
+
+      // UI visibility functions
+      function showGameUI() {
+        document.getElementById("gameUI").style.display = "block";
+        document.getElementById("speedControl").style.display = "flex";
+      }
+
+      function hideGameUI() {
+        document.getElementById("gameUI").style.display = "none";
+        document.getElementById("speedControl").style.display = "none";
+      }
+
+      // Initialize the game when page loads
+      window.addEventListener("load", init);
+    </script>
+  </body>
+</html>

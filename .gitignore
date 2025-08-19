@@ -1,0 +1,9 @@
+﻿Thumbs.db
+.DS_Store
+.vscode/
+.idea/
+dist/
+build/
+node_modules/
+*.log
+.env
