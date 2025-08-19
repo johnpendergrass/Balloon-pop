@@ -1,6 +1,9 @@
-\# Balloon-pop 🎈
+\# TSBalloonie.html
 
+note: the original name for this was just: Balloon-pop 🎈
 
+but I renamed it TSBalloonie.html on 08-19-2025, to better
+reflect that is was a whimsical Toy Story themed balloon game.
 
 Started August 18, 2025.
 
