@@ -23,6 +23,7 @@
         border: 3px solid #ffffff;
         border-radius: 15px;
         box-shadow: 0 0 30px rgba(255, 255, 255, 0.4);
+        background-color: #001122;
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
@@ -287,6 +288,13 @@
       let levelEndsAt = 0; // performance.now timestamp
       let waitingForStart = true;
 
+      // Background image system
+      let availableBackgrounds = [];
+      let currentBackground = null;
+      let splashBackground = null;
+      let currentLevelBackground = null; // Track background for current level
+      let usingStarfieldFallback = true; // Start with starfield until background loads
+
       // DPR variables
       let dpr = 1;
       function cssWidth() { return canvas.width / dpr; }
@@ -317,17 +325,129 @@
         // Scale the context so drawing uses CSS-pixel coordinates
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-        // Recreate star field when canvas resizes
-        if (stars.length > 0) {
-          createStarField();
-        }
-
         // Keep balloons within new bounds (in CSS px)
         balloons.forEach(b => {
           const w = cssWidth(), h = cssHeight();
           if (b.x + b.radius > w) b.x = w - b.radius;
           if (b.y + b.radius > h) b.y = h - b.radius;
         });
+      }
+
+      // Background image discovery and management
+      async function discoverBackgroundImages() {
+        console.log('Starting dynamic background image discovery...');
+        
+        // Test for background files using pattern BG-1.png through BG-20.png
+        const discovered = [];
+        const testPromises = [];
+        
+        // Create promises to test each potential background file
+        for (let i = 1; i <= 20; i++) {
+          const filename = `BG-${i}.png`;
+          
+          const testPromise = new Promise((resolve) => {
+            const img = new Image();
+            
+            img.onload = function() {
+              console.log(`✓ Found background: ${filename}`);
+              resolve(filename);
+            };
+            
+            img.onerror = function() {
+              console.log(`✗ Missing background: ${filename}`);
+              resolve(null);
+            };
+            
+            // Start loading test
+            img.src = filename;
+          });
+          
+          testPromises.push(testPromise);
+        }
+        
+        // Wait for all tests to complete
+        console.log('Testing for background files BG-1.png through BG-20.png...');
+        const results = await Promise.all(testPromises);
+        
+        // Filter out null results (files that didn't exist)
+        const foundFiles = results.filter(filename => filename !== null);
+        availableBackgrounds = foundFiles;
+        
+        console.log(`Discovery complete! Found ${availableBackgrounds.length} background files:`, availableBackgrounds);
+        
+        if (availableBackgrounds.length === 0) {
+          console.log('No background images found, starfield will be used');
+          usingStarfieldFallback = true;
+        } else {
+          console.log('Background images available, starfield will be hidden when images load');
+        }
+        
+        // For now, no specific splash image - will use random background
+        splashBackground = null;
+        console.log('No specific splash image configured, will use random background');
+      }
+      
+      function selectRandomBackground() {
+        if (availableBackgrounds.length === 0) {
+          usingStarfieldFallback = true;
+          return null;
+        }
+        
+        const randomIndex = Math.floor(Math.random() * availableBackgrounds.length);
+        return availableBackgrounds[randomIndex];
+      }
+      
+      function applyBackgroundImage(imagePath, fallbackToStarfield = true) {
+        const gameContainer = document.getElementById('gameContainer');
+        
+        if (!imagePath) {
+          // Clear background and use starfield
+          gameContainer.style.backgroundImage = '';
+          gameContainer.style.backgroundColor = '#001122';
+          usingStarfieldFallback = true;
+          console.log('No background image provided, using starfield fallback');
+          return;
+        }
+        
+        // Create a new image to test loading
+        const img = new Image();
+        
+        img.onload = function() {
+          gameContainer.style.backgroundImage = `url('${imagePath}')`;
+          currentBackground = imagePath;
+          usingStarfieldFallback = false;
+          console.log('Background successfully applied:', imagePath);
+        };
+        
+        img.onerror = function() {
+          console.warn('Failed to load background image:', imagePath);
+          if (fallbackToStarfield) {
+            gameContainer.style.backgroundImage = '';
+            gameContainer.style.backgroundColor = '#001122';
+            usingStarfieldFallback = true;
+            console.log('Background loading failed, using starfield fallback');
+          }
+        };
+        
+        console.log('Attempting to load background image:', imagePath);
+        img.src = imagePath;
+      }
+      
+      function setRandomBackground() {
+        const selectedBackground = selectRandomBackground();
+        console.log('Setting random background:', selectedBackground || 'none (using starfield)');
+        applyBackgroundImage(selectedBackground);
+      }
+      
+      function setSplashBackground() {
+        if (splashBackground) {
+          console.log('Setting splash background:', splashBackground);
+          applyBackgroundImage(splashBackground);
+        } else {
+          // Use a random background for splash if no specific splash image
+          console.log('No splash background found, using random background');
+          setRandomBackground();
+        }
       }
 
       // Level system functions
@@ -421,11 +541,19 @@
       }
 
       // Initialize the game
-      function init() {
+      async function init() {
         resizeCanvas();
-        createStarField();
         updateSpeedSlider();
         loadStatistics();
+
+        // Discover available background images
+        await discoverBackgroundImages();
+        
+        // Create starfield initially (will be hidden if backgrounds work)
+        createStarField();
+        
+        // Set splash screen background
+        setSplashBackground();
 
         // Initialize speed display
         const effectiveSpeed = getLevelSpeed(currentLevel, balloonSpeed);
@@ -438,6 +566,10 @@
         // Add resize event listener
         window.addEventListener("resize", () => {
           resizeCanvas();
+          // Recreate star field when canvas resizes
+          if (usingStarfieldFallback) {
+            createStarField();
+          }
           // Adjust balloon positions if they're outside new boundaries
           balloons.forEach((balloon) => {
             if (balloon.x + balloon.radius > canvas.width) {
@@ -458,6 +590,25 @@
         gameOverElement.style.display = "none";
         showGameUI(); // Show UI during splash screen
 
+        // Select and store background for this entire level
+        if (currentLevel === 1) {
+          // For level 1, use splash background if available, otherwise random
+          if (splashBackground) {
+            currentLevelBackground = splashBackground;
+            console.log('Level 1 using splash background:', splashBackground);
+          } else {
+            currentLevelBackground = selectRandomBackground();
+            console.log('Level 1 using random background:', currentLevelBackground);
+          }
+        } else {
+          // For other levels, select a new random background
+          currentLevelBackground = selectRandomBackground();
+          console.log(`Level ${currentLevel} using background:`, currentLevelBackground);
+        }
+        
+        // Apply the selected background for this level
+        applyBackgroundImage(currentLevelBackground);
+
         // Show scorecard before starting
         showScorecard();
       }
@@ -474,6 +625,9 @@
           currentGameBalloons = 0;
         }
 
+        // Keep the same background that was set in showLevelStart()
+        console.log(`Starting level ${currentLevel} with consistent background:`, currentLevelBackground);
+        applyBackgroundImage(currentLevelBackground);
 
         startGame();
       }
@@ -561,15 +715,20 @@
 
         // Clear & draw
         ctx.clearRect(0, 0, cssWidth(), cssHeight());
+        
+        // Only draw stars if using starfield fallback
         drawStars();
+        
         updateBalloons();
         drawBalloons();
 
         animationId = requestAnimationFrame(gameLoop);
       }
 
-      // Draw star field
+      // Draw star field (only when using starfield fallback)
       function drawStars() {
+        if (!usingStarfieldFallback) return; // Only draw stars when no background image
+        
         for (const star of stars) {
           ctx.fillStyle = `rgba(255, 255, 255, ${star.brightness})`;
           ctx.beginPath();
@@ -778,11 +937,15 @@
             )}s`;
             gameOverText.style.color = "#FFD700";
             gameOverElement.style.display = "block";
+            // Set a random background for the victory screen
+            setRandomBackground();
           }
         } else {
           gameOverText.innerHTML = `Level ${currentLevel} Failed!<br>Time ran out!`;
           gameOverText.style.color = "#FF6B6B";
           gameOverElement.style.display = "block";
+          // Set a random background for the game over screen
+          setRandomBackground();
         }
       }
 
@@ -915,6 +1078,25 @@
         document.getElementById("gameUI").style.display = "none";
         document.getElementById("speedControl").style.display = "none";
       }
+
+      // Debug function to manually test background
+      window.debugBackground = function(imageName) {
+        console.log('Manual background test for:', imageName);
+        applyBackgroundImage(imageName);
+      };
+      
+      // Debug function to show current state
+      window.debugState = function() {
+        console.log('=== BACKGROUND SYSTEM DEBUG ===');
+        console.log('Available backgrounds:', availableBackgrounds);
+        console.log(`Total backgrounds found: ${availableBackgrounds.length}`);
+        console.log('Current background:', currentBackground);
+        console.log('Current level background:', currentLevelBackground);
+        console.log('Using starfield fallback:', usingStarfieldFallback);
+        console.log('Splash background:', splashBackground);
+        console.log('Current level:', currentLevel);
+        console.log('================================');
+      };
 
       // Initialize the game when page loads
       window.addEventListener("load", init);
