@@ -468,42 +468,6 @@
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
       }
 
-      /* Celebration Effects */
-      .celebration-container {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        pointer-events: none;
-        overflow: hidden;
-        border-radius: 15px;
-      }
-
-      .sparkle {
-        position: absolute;
-        width: 4px;
-        height: 4px;
-        background: #FFD700;
-        border-radius: 50%;
-        box-shadow: 0 0 6px #FFD700;
-        animation: sparkle 1s ease-out forwards;
-      }
-
-      @keyframes sparkle {
-        0% {
-          opacity: 1;
-          transform: scale(0) rotate(0deg);
-        }
-        50% {
-          opacity: 1;
-          transform: scale(1) rotate(180deg);
-        }
-        100% {
-          opacity: 0;
-          transform: scale(0) rotate(360deg);
-        }
-      }
     </style>
   </head>
   <body>
@@ -513,7 +477,6 @@
         <div id="slotMachineDisplay">
           <div id="scoreDigits"></div>
           <div id="topTimer">20</div>
-          <div class="celebration-container" id="celebrationContainer"></div>
         </div>
       </div>
       
@@ -600,7 +563,6 @@
       
       // Slot machine display elements
       const scoreDigitsElement = document.getElementById("scoreDigits");
-      const celebrationContainer = document.getElementById("celebrationContainer");
       const customCursor = document.getElementById("customCursor");
       const mainContainer = document.getElementById("mainContainer");
 
@@ -1483,8 +1445,6 @@
           }
         }
         
-        // Check for milestone celebrations
-        checkMilestones();
         
         previousScore = currentScore;
       }
@@ -1520,114 +1480,6 @@
         customCursor.style.opacity = '0';
       }
       
-      // Check for score milestones and trigger celebrations
-      function checkMilestones() {
-        const prevMillion = Math.floor(previousScore / 1000000);
-        const currMillion = Math.floor(currentScore / 1000000);
-        const prevBillion = Math.floor(previousScore / 1000000000);
-        const currBillion = Math.floor(currentScore / 1000000000);
-        const prevTrillion = Math.floor(previousScore / 1000000000000);
-        const currTrillion = Math.floor(currentScore / 1000000000000);
-        const prevTenK = Math.floor(previousScore / 10000);
-        const currTenK = Math.floor(currentScore / 10000);
-        
-        // Check for trillion milestone
-        if (currTrillion > prevTrillion) {
-          console.log('🎉 TRILLION MILESTONE!');
-          triggerCelebration('trillion');
-        }
-        // Check for billion milestone
-        else if (currBillion > prevBillion) {
-          console.log('🎉 BILLION MILESTONE!');
-          triggerCelebration('billion');
-        }
-        // Check for million milestone
-        else if (currMillion > prevMillion) {
-          console.log('🎉 MILLION MILESTONE!');
-          triggerCelebration('million');
-        }
-        // Check for 10K milestones
-        else if (currTenK > prevTenK) {
-          console.log('🎉 10K MILESTONE!');
-          triggerCelebration('regular');
-        }
-      }
-      
-      // Trigger celebration effects
-      function triggerCelebration(type) {
-        console.log(`🎉 ${type.toUpperCase()} milestone celebration starting!`);
-        
-        const sparkleCount = {
-          'regular': 8,
-          'million': 20,
-          'billion': 40,
-          'trillion': 80
-        }[type] || 8;
-        
-        console.log(`Creating ${sparkleCount} sparkles for ${type} milestone`);
-        
-        // Create sparkle burst
-        for (let i = 0; i < sparkleCount; i++) {
-          setTimeout(() => {
-            createSparkle();
-            console.log(`Sparkle ${i + 1} created`);
-          }, i * 30); // Faster sparkle creation
-        }
-        
-        // Special effects for major milestones
-        if (type === 'billion' || type === 'trillion') {
-          console.log('Adding flash effect for major milestone');
-          setTimeout(() => flashMainDisplay(), 200);
-        }
-        
-        // Extra effects for trillion
-        if (type === 'trillion') {
-          console.log('Epic trillion celebration!');
-          // Add more flashes
-          setTimeout(() => flashMainDisplay(), 600);
-          setTimeout(() => flashMainDisplay(), 1000);
-        }
-      }
-      
-      // Create individual sparkle
-      function createSparkle() {
-        console.log('Creating sparkle element');
-        const sparkle = document.createElement('div');
-        sparkle.className = 'sparkle';
-        
-        // Random position within celebration container
-        const x = Math.random() * 100;
-        const y = Math.random() * 100;
-        sparkle.style.left = x + '%';
-        sparkle.style.top = y + '%';
-        
-        console.log(`Sparkle positioned at ${x.toFixed(1)}%, ${y.toFixed(1)}%`);
-        
-        if (celebrationContainer) {
-          celebrationContainer.appendChild(sparkle);
-          console.log('Sparkle added to celebration container');
-        } else {
-          console.error('Celebration container not found!');
-        }
-        
-        // Remove after animation
-        setTimeout(() => {
-          if (sparkle.parentNode) {
-            sparkle.parentNode.removeChild(sparkle);
-            console.log('Sparkle removed');
-          }
-        }, 1000);
-      }
-      
-      // Flash effect for major milestones
-      function flashMainDisplay() {
-        const mainDisplay = document.getElementById('slotMachineDisplay');
-        mainDisplay.style.background = 'linear-gradient(145deg, #fff 0%, #f0f0f0 50%, #e0e0e0 100%)';
-        
-        setTimeout(() => {
-          mainDisplay.style.background = 'linear-gradient(145deg, #e6e6e6 0%, #cccccc 25%, #b3b3b3 50%, #999999 75%, #808080 100%)';
-        }, 200);
-      }
       
       // Update top timer display with color coding
       function updateTopTimer() {
