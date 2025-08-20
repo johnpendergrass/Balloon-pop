@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scoring System Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 950px; /* FHD height minus browser UI (1080 - 130) */
+            width: 1920px; /* FHD width */
+            background-color: #001122;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Full-screen background container */
+        #mainContainer {
+            width: 1920px; /* FHD width */
+            height: 950px; /* FHD height minus browser UI */
+            background-color: #001122;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top scoreboard area */
+        #scoreboardArea {
+            height: 120px;
+            width: 100%;
+            position: relative;
+            z-index: 20;
+        }
+
+        /* Chrome separator */
+        #chromeSeparator {
+            height: 8px;
+            width: 100%;
+            background: linear-gradient(90deg, 
+                #666 0%, #ccc 15%, #fff 30%, #ccc 45%, 
+                #999 50%, #ccc 55%, #fff 70%, #ccc 85%, #666 100%);
+            box-shadow: 
+                0 2px 4px rgba(0,0,0,0.5),
+                inset 0 1px 0 rgba(255,255,255,0.8),
+                inset 0 -1px 0 rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        #chromeSeparator::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+            animation: chrome-shine 2s infinite;
+        }
+
+        @keyframes chrome-shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Game area container */
+        #gameContainer {
+            flex: 1;
+            position: relative;
+            margin: 10px;
+            border: 3px solid #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.4);
+            overflow: hidden;
+        }
+
+        /* Resolution display in upper corner */
+        #resolutionDisplay {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #00ff00;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 10;
+            border: 1px solid #00ff00;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+            text-shadow: 0 0 5px #00ff00;
+        }
+
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+            background: transparent;
+            cursor: none; /* Hide default cursor */
+        }
+
+        /* Custom Cursor System */
+        #customCursor {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            transition: opacity 0.2s ease;
+        }
+
+        /* Sharp pointer cursor */
+        .cursor-pointer {
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 20px solid #ffffff;
+            filter: drop-shadow(0 0 3px rgba(0,0,0,0.8)) drop-shadow(0 0 6px #ffffff);
+        }
+
+        /* Streak cursor with number */
+        .cursor-streak {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .cursor-streak .streak-pointer {
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-bottom: 24px solid #FFD700;
+            filter: drop-shadow(0 0 4px rgba(0,0,0,0.8)) drop-shadow(0 0 8px #FFD700);
+        }
+
+        .cursor-streak .streak-number {
+            background: #FFD700;
+            color: #000;
+            font-weight: bold;
+            font-size: 14px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            margin-top: 4px;
+            text-shadow: none;
+            box-shadow: 0 0 8px #FFD700;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        /* FULL-WIDTH SLOT MACHINE DISPLAY */
+        #slotMachineDisplay {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(145deg, #e6e6e6 0%, #cccccc 25%, #b3b3b3 50%, #999999 75%, #808080 100%);
+            border-bottom: 4px solid #666666;
+            box-shadow: 
+                inset 0 2px 4px rgba(255, 255, 255, 0.8),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.3),
+                0 2px 8px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 1000px;
+        }
+
+        #slotMachineDisplay::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+            animation: machine-shine 3s infinite;
+        }
+
+        @keyframes machine-shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Rolling Numbers Container */
+        #scoreDigits {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            height: 80px;
+        }
+
+        /* Simplified Digit Container */
+        .digit-container {
+            width: 60px;
+            height: 80px;
+            position: relative;
+        }
+
+        /* The visible window showing the digit */
+        .digit-window {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(145deg, #1a1a1a 0%, #000000 50%, #1a1a1a 100%);
+            border: 3px solid #666;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 
+                inset 0 4px 8px rgba(0, 0, 0, 0.8),
+                inset 0 -2px 4px rgba(255, 255, 255, 0.2),
+                0 2px 6px rgba(0, 0, 0, 0.4);
+        }
+
+        /* The spinning wheel strip */
+        .digit-wheel {
+            position: absolute;
+            width: 100%;
+            height: 800px; /* 10 digits × 80px each */
+            top: 0;
+            left: 0;
+            transition: transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        /* Individual digit in the wheel */
+        .digit-number {
+            position: absolute;
+            width: 100%;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 52px;
+            color: #00ff00;
+            text-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00;
+            background: linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
+            border-top: 1px solid rgba(0, 255, 0, 0.2);
+            border-bottom: 1px solid rgba(0, 255, 0, 0.1);
+        }
+
+        /* Position digits vertically in the wheel */
+        .digit-number:nth-child(1) { top: 0px; }     /* 0 */
+        .digit-number:nth-child(2) { top: 80px; }    /* 1 */
+        .digit-number:nth-child(3) { top: 160px; }   /* 2 */
+        .digit-number:nth-child(4) { top: 240px; }   /* 3 */
+        .digit-number:nth-child(5) { top: 320px; }   /* 4 */
+        .digit-number:nth-child(6) { top: 400px; }   /* 5 */
+        .digit-number:nth-child(7) { top: 480px; }   /* 6 */
+        .digit-number:nth-child(8) { top: 560px; }   /* 7 */
+        .digit-number:nth-child(9) { top: 640px; }   /* 8 */
+        .digit-number:nth-child(10) { top: 720px; }  /* 9 */
+
+        /* Comma Separators */
+        .comma-separator {
+            width: 20px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: #888;
+            font-weight: bold;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Celebration Effects */
+        .celebration-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            overflow: hidden;
+            border-radius: 15px;
+        }
+
+        .sparkle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #FFD700;
+            border-radius: 50%;
+            box-shadow: 0 0 6px #FFD700;
+            animation: sparkle 1s ease-out forwards;
+        }
+
+        @keyframes sparkle {
+            0% {
+                opacity: 1;
+                transform: scale(0) rotate(0deg);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1) rotate(180deg);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0) rotate(360deg);
+            }
+        }
+
+        /* Controls */
+        #controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(5px);
+            text-align: center;
+            z-index: 30;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        button {
+            margin: 5px;
+            padding: 8px 15px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        /* Star field for background */
+        .star {
+            position: absolute;
+            background-color: white;
+            border-radius: 50%;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div id="mainContainer">
+        <!-- Top Scoreboard Area -->
+        <div id="scoreboardArea">
+            <div id="slotMachineDisplay">
+                <div id="scoreDigits"></div>
+                <div class="celebration-container" id="celebrationContainer"></div>
+            </div>
+        </div>
+        
+        <!-- Chrome Separator -->
+        <div id="chromeSeparator"></div>
+        
+        <!-- Game Area -->
+        <div id="gameContainer">
+            <div id="resolutionDisplay">Browser: <span id="browserSize">Loading...</span><br>Target: 1920 x 1080 FHD</div>
+            <canvas id="gameCanvas"></canvas>
+        </div>
+        
+        <!-- Custom Cursor -->
+        <div id="customCursor">
+            <div class="cursor-pointer"></div>
+        </div>
+
+        <!-- Controls (positioned over game area) -->
+        <div id="controls">
+            <div>Click balloons to pop them!</div>
+            <button onclick="spawnBalloon()">Add Balloon</button>
+            <button onclick="resetTest()">Reset Test</button>
+            <br><br>
+            <div>Quick Score Tests:</div>
+            <button onclick="addScore(50000)">+50K</button>
+            <button onclick="addScore(950000)">+950K (→Million)</button>
+            <button onclick="addScore(999000000)">+999M (→Billion)</button>
+            <button onclick="addScore(999000000000)">+999B (→Trillion)</button>
+        </div>
+    </div>
+
+    <script>
+        // Game variables
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const scoreDigitsElement = document.getElementById("scoreDigits");
+        const celebrationContainer = document.getElementById("celebrationContainer");
+        const customCursor = document.getElementById("customCursor");
+        const mainContainer = document.getElementById("mainContainer");
+        
+        let balloons = [];
+        let animationId;
+        let score = 0;
+        let streak = 0;
+        let dpr = 1;
+        let digitContainers = [];
+        let previousScore = 0;
+
+        // Canvas setup for FHD resolution
+        function resizeCanvas() {
+            const container = document.getElementById("gameContainer");
+            
+            dpr = Math.max(1, window.devicePixelRatio || 1);
+            // Fixed dimensions for FHD game area
+            const cssW = 1914; // 1920 - 6px for borders
+            const cssH = 816; // 822 - 6px for borders (950 - 120 - 8 - 6)
+
+            canvas.style.width = cssW + "px";
+            canvas.style.height = cssH + "px";
+            canvas.width = Math.floor(cssW * dpr);
+            canvas.height = Math.floor(cssH * dpr);
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+
+        function cssWidth() { return canvas.width / dpr; }
+        function cssHeight() { return canvas.height / dpr; }
+
+        // Create starfield background for game area only
+        function createStarField() {
+            const container = document.getElementById("gameContainer");
+            // Clear existing stars
+            document.querySelectorAll('.star').forEach(star => star.remove());
+            
+            const w = cssWidth(), h = cssHeight();
+            const starCount = Math.floor(w * h * 0.0002);
+            
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * w + 'px';
+                star.style.top = Math.random() * h + 'px';
+                star.style.width = (Math.random() * 2 + 1) + 'px';
+                star.style.height = star.style.width;
+                star.style.opacity = Math.random() * 0.8 + 0.2;
+                container.appendChild(star);
+            }
+        }
+        
+        // Set background image for entire layout
+        function setBackgroundImage(imagePath) {
+            if (imagePath) {
+                mainContainer.style.backgroundImage = `url('${imagePath}')`;
+                console.log('Background image set:', imagePath);
+            }
+        }
+
+        // Simple balloon class
+        class Balloon {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.radius = Math.random() * 30 + 20; // 20-50px radius
+                this.color = this.getRandomColor();
+                this.vx = (Math.random() - 0.5) * 2; // Random velocity
+                this.vy = (Math.random() - 0.5) * 2;
+                this.popping = false;
+                this.popAnimation = 0;
+            }
+
+            getRandomColor() {
+                const colors = ["#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7", "#DDA0DD"];
+                return colors[Math.floor(Math.random() * colors.length)];
+            }
+
+            update() {
+                if (this.popping) {
+                    this.popAnimation += 0.3;
+                    return this.popAnimation >= 1; // Return true when animation complete
+                }
+
+                this.x += this.vx;
+                this.y += this.vy;
+
+                const w = cssWidth(), h = cssHeight();
+                // Wall collisions
+                if (this.x - this.radius <= 0 || this.x + this.radius >= w) {
+                    this.vx = -this.vx;
+                    this.x = Math.max(this.radius, Math.min(w - this.radius, this.x));
+                }
+                if (this.y - this.radius <= 0 || this.y + this.radius >= h) {
+                    this.vy = -this.vy;
+                    this.y = Math.max(this.radius, Math.min(h - this.radius, this.y));
+                }
+                return false;
+            }
+
+            draw() {
+                if (this.popping) {
+                    // Pop animation
+                    const scale = this.popAnimation < 0.3 ? 
+                        1 - this.popAnimation * 2 : 1 + (this.popAnimation - 0.3) * 8;
+                    
+                    if (this.popAnimation < 0.7) {
+                        ctx.save();
+                        ctx.translate(this.x, this.y);
+                        ctx.scale(scale, scale);
+                        ctx.fillStyle = this.color;
+                        ctx.beginPath();
+                        ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.restore();
+                    }
+                } else {
+                    // Draw balloon
+                    ctx.fillStyle = this.color;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Add highlight
+                    ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
+                    ctx.beginPath();
+                    ctx.arc(this.x - this.radius * 0.3, this.y - this.radius * 0.3, 
+                            this.radius * 0.3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+        }
+
+        // ============================================================================
+        // SLOT MACHINE SCORING SYSTEM
+        // ============================================================================
+        
+        // Initialize simplified spinning score display
+        function initializeScoreDisplay() {
+            const maxDigits = 15; // Handles up to 999 trillion
+            scoreDigitsElement.innerHTML = '';
+            digitContainers = [];
+            
+            for (let i = 0; i < maxDigits; i++) {
+                // Add comma separator every 3 digits (from right)
+                if (i > 0 && i % 3 === 0) {
+                    const comma = document.createElement('div');
+                    comma.className = 'comma-separator';
+                    comma.textContent = ',';
+                    scoreDigitsElement.appendChild(comma);
+                }
+                
+                const container = document.createElement('div');
+                container.className = 'digit-container';
+                
+                const window = document.createElement('div');
+                window.className = 'digit-window';
+                
+                const wheel = document.createElement('div');
+                wheel.className = 'digit-wheel';
+                
+                // Create 10 digits for the wheel (0-9)
+                for (let digit = 0; digit <= 9; digit++) {
+                    const digitElement = document.createElement('div');
+                    digitElement.className = 'digit-number';
+                    digitElement.textContent = digit;
+                    wheel.appendChild(digitElement);
+                }
+                
+                window.appendChild(wheel);
+                container.appendChild(window);
+                scoreDigitsElement.appendChild(container);
+                
+                digitContainers.push({container, wheel}); // Store in correct order (left to right)
+            }
+        }
+        
+        // Roll individual wheel to target number with settling effect
+        function rollDigit(digitObj, targetDigit, delay = 0) {
+            setTimeout(() => {
+                const wheel = digitObj.wheel;
+                const targetPosition = -targetDigit * 80; // 80px per digit
+                
+                // First spin past the target (overshoot)
+                const overshoot = targetPosition - 40; // Go 40px past
+                wheel.style.transition = 'transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+                wheel.style.transform = `translateY(${overshoot}px)`;
+                
+                // Then settle back to final position with bounce
+                setTimeout(() => {
+                    wheel.style.transition = 'transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+                    wheel.style.transform = `translateY(${targetPosition}px)`;
+                }, 800);
+                
+            }, delay);
+        }
+        
+        // Update score display with rolling animation
+        function updateScoreDisplay() {
+            const scoreStr = score.toString().padStart(15, '0');
+            const previousStr = previousScore.toString().padStart(15, '0');
+            
+            console.log(`Score update: ${previousScore.toLocaleString()} → ${score.toLocaleString()}`);
+            console.log(`Score strings: "${previousStr}" → "${scoreStr}"`);
+            
+            // Find which digits changed and animate them
+            for (let i = 0; i < 15; i++) {
+                const currentDigit = parseInt(scoreStr[i]);
+                const previousDigit = parseInt(previousStr[i]);
+                
+                if (currentDigit !== previousDigit) {
+                    // Add small delay based on position for cascading effect
+                    const delay = (14 - i) * 50; // Right-most digits first
+                    console.log(`Position ${i}: ${previousDigit} → ${currentDigit} (delay: ${delay}ms)`);
+                    rollDigit(digitContainers[i], currentDigit, delay);
+                }
+            }
+            
+            // Check for milestone celebrations
+            checkMilestones();
+            
+            previousScore = score;
+        }
+        
+        // Update custom cursor based on streak
+        function updateCursor() {
+            if (streak >= 5) {
+                // Show streak cursor with number below pointer
+                customCursor.innerHTML = `
+                    <div class="cursor-streak">
+                        <div class="streak-pointer"></div>
+                        <div class="streak-number">${streak}</div>
+                    </div>
+                `;
+            } else {
+                // Show regular sharp pointer
+                customCursor.innerHTML = '<div class="cursor-pointer"></div>';
+            }
+        }
+        
+        // Handle mouse movement for custom cursor
+        function handleMouseMove(event) {
+            customCursor.style.left = event.clientX + 'px';
+            customCursor.style.top = event.clientY + 'px';
+        }
+        
+        // Show/hide cursor when entering/leaving canvas
+        function handleMouseEnter() {
+            customCursor.style.opacity = '1';
+        }
+        
+        function handleMouseLeave() {
+            customCursor.style.opacity = '0';
+        }
+        
+        // Check for score milestones and trigger celebrations
+        function checkMilestones() {
+            const prevMillion = Math.floor(previousScore / 1000000);
+            const currMillion = Math.floor(score / 1000000);
+            const prevBillion = Math.floor(previousScore / 1000000000);
+            const currBillion = Math.floor(score / 1000000000);
+            const prevTrillion = Math.floor(previousScore / 1000000000000);
+            const currTrillion = Math.floor(score / 1000000000000);
+            const prevTenK = Math.floor(previousScore / 10000);
+            const currTenK = Math.floor(score / 10000);
+            
+            // Check for trillion milestone
+            if (currTrillion > prevTrillion) {
+                console.log('🎉 TRILLION MILESTONE!');
+                triggerCelebration('trillion');
+            }
+            // Check for billion milestone
+            else if (currBillion > prevBillion) {
+                console.log('🎉 BILLION MILESTONE!');
+                triggerCelebration('billion');
+            }
+            // Check for million milestone
+            else if (currMillion > prevMillion) {
+                console.log('🎉 MILLION MILESTONE!');
+                triggerCelebration('million');
+            }
+            // Check for 10K milestones
+            else if (currTenK > prevTenK) {
+                console.log('🎉 10K MILESTONE!');
+                triggerCelebration('regular');
+            }
+        }
+        
+        // Trigger celebration effects
+        function triggerCelebration(type) {
+            console.log(`🎉 ${type.toUpperCase()} milestone celebration starting!`);
+            
+            const sparkleCount = {
+                'regular': 8,
+                'million': 20,
+                'billion': 40,
+                'trillion': 80
+            }[type] || 8;
+            
+            console.log(`Creating ${sparkleCount} sparkles for ${type} milestone`);
+            
+            // Create sparkle burst
+            for (let i = 0; i < sparkleCount; i++) {
+                setTimeout(() => {
+                    createSparkle();
+                    console.log(`Sparkle ${i + 1} created`);
+                }, i * 30); // Faster sparkle creation
+            }
+            
+            // Special effects for major milestones
+            if (type === 'billion' || type === 'trillion') {
+                console.log('Adding flash effect for major milestone');
+                setTimeout(() => flashMainDisplay(), 200);
+            }
+            
+            // Extra effects for trillion
+            if (type === 'trillion') {
+                console.log('Epic trillion celebration!');
+                // Add more flashes
+                setTimeout(() => flashMainDisplay(), 600);
+                setTimeout(() => flashMainDisplay(), 1000);
+            }
+        }
+        
+        // Create individual sparkle
+        function createSparkle() {
+            console.log('Creating sparkle element');
+            const sparkle = document.createElement('div');
+            sparkle.className = 'sparkle';
+            
+            // Random position within celebration container
+            const x = Math.random() * 100;
+            const y = Math.random() * 100;
+            sparkle.style.left = x + '%';
+            sparkle.style.top = y + '%';
+            
+            console.log(`Sparkle positioned at ${x.toFixed(1)}%, ${y.toFixed(1)}%`);
+            
+            if (celebrationContainer) {
+                celebrationContainer.appendChild(sparkle);
+                console.log('Sparkle added to celebration container');
+            } else {
+                console.error('Celebration container not found!');
+            }
+            
+            // Remove after animation
+            setTimeout(() => {
+                if (sparkle.parentNode) {
+                    sparkle.parentNode.removeChild(sparkle);
+                    console.log('Sparkle removed');
+                }
+            }, 1000);
+        }
+        
+        // Flash effect for major milestones
+        function flashMainDisplay() {
+            const mainDisplay = document.getElementById('slotMachineDisplay');
+            mainDisplay.style.background = 'linear-gradient(145deg, #fff 0%, #f0f0f0 50%, #e0e0e0 100%)';
+            
+            setTimeout(() => {
+                mainDisplay.style.background = 'linear-gradient(145deg, #e6e6e6 0%, #cccccc 25%, #b3b3b3 50%, #999999 75%, #808080 100%)';
+            }, 200);
+        }
+        
+        // Main update function
+        function updateTestScoringDisplay() {
+            updateScoreDisplay();
+            updateCursor();
+        }
+
+        // Game logic
+        function spawnBalloon() {
+            const w = cssWidth(), h = cssHeight();
+            const x = Math.random() * (w - 100) + 50;
+            const y = Math.random() * (h - 100) + 50;
+            balloons.push(new Balloon(x, y));
+        }
+
+        function processHit() {
+            // Use bigger increments to test the rolling system
+            const basePoints = 1000;
+            const streakBonus = streak >= 5 ? basePoints * 10 : 0;
+            const points = basePoints + streakBonus;
+            
+            score += points;
+            streak++;
+            
+            console.log(`Hit! +${points.toLocaleString()} points (Streak: ${streak}), Total: ${score.toLocaleString()}`);
+            updateTestScoringDisplay();
+        }
+
+        function processMiss() {
+            streak = 0;
+            console.log(`Miss! Streak reset`);
+            updateTestScoringDisplay();
+        }
+
+        function resetTest() {
+            score = 0;
+            previousScore = 0;
+            streak = 0;
+            balloons = [];
+            updateTestScoringDisplay();
+            console.log('Test reset');
+        }
+        
+        function addScore(amount) {
+            score += amount;
+            console.log(`Added ${amount.toLocaleString()} points! Total: ${score.toLocaleString()}`);
+            updateTestScoringDisplay();
+        }
+
+        // Game loop
+        function gameLoop() {
+            ctx.clearRect(0, 0, cssWidth(), cssHeight());
+            
+            // Update balloons
+            for (let i = balloons.length - 1; i >= 0; i--) {
+                if (balloons[i].update()) {
+                    balloons.splice(i, 1); // Remove completed pop animations
+                }
+            }
+            
+            // Draw balloons
+            balloons.forEach(balloon => balloon.draw());
+            
+            animationId = requestAnimationFrame(gameLoop);
+        }
+
+        // Click handling
+        canvas.addEventListener("click", (event) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+
+            let hit = false;
+            for (const balloon of balloons) {
+                if (balloon.popping) continue;
+                const distance = Math.hypot(x - balloon.x, y - balloon.y);
+                if (distance <= balloon.radius) {
+                    balloon.popping = true;
+                    balloon.popAnimation = 0;
+                    processHit();
+                    hit = true;
+                    break;
+                }
+            }
+            
+            if (!hit) {
+                processMiss();
+            }
+        });
+
+        // Update resolution display
+        function updateResolutionDisplay() {
+            const browserSize = document.getElementById('browserSize');
+            if (browserSize) {
+                browserSize.textContent = `${window.innerWidth} x ${window.innerHeight}`;
+            }
+        }
+
+        // Initialize
+        function init() {
+            resizeCanvas();
+            createStarField();
+            initializeScoreDisplay();
+            updateTestScoringDisplay();
+            updateResolutionDisplay();
+            
+            // Setup cursor event listeners
+            canvas.addEventListener('mousemove', handleMouseMove);
+            canvas.addEventListener('mouseenter', handleMouseEnter);
+            canvas.addEventListener('mouseleave', handleMouseLeave);
+            
+            // Add some initial balloons
+            for (let i = 0; i < 5; i++) {
+                spawnBalloon();
+            }
+            
+            gameLoop();
+        }
+
+        window.addEventListener("resize", () => {
+            resizeCanvas();
+            createStarField();
+            updateResolutionDisplay();
+        });
+
+        window.addEventListener("load", init);
+    </script>
+</body>
+</html>

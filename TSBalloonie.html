@@ -13,29 +13,127 @@
         background-color: #001122;
         font-family: Arial, sans-serif;
         overflow: hidden;
+        display: flex;
+        flex-direction: column;
       }
 
-      #gameContainer {
-        position: relative;
-        width: calc(100vw - 20px);
-        height: calc(100vh - 20px);
-        margin: 10px;
-        border: 3px solid #ffffff;
-        border-radius: 15px;
-        box-shadow: 0 0 30px rgba(255, 255, 255, 0.4);
+      /* Full-screen background container */
+      #mainContainer {
+        width: 100vw;
+        height: 100vh;
         background-color: #001122;
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Top scoreboard area */
+      #scoreboardArea {
+        height: 120px;
+        width: 100%;
+        position: relative;
+        z-index: 20;
+      }
+
+      /* Chrome separator */
+      #chromeSeparator {
+        height: 8px;
+        width: 100%;
+        background: linear-gradient(90deg, 
+          #666 0%, #ccc 15%, #fff 30%, #ccc 45%, 
+          #999 50%, #ccc 55%, #fff 70%, #ccc 85%, #666 100%);
+        box-shadow: 
+          0 2px 4px rgba(0,0,0,0.5),
+          inset 0 1px 0 rgba(255,255,255,0.8),
+          inset 0 -1px 0 rgba(0,0,0,0.3);
+        position: relative;
+      }
+
+      #chromeSeparator::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+        animation: chrome-shine 2s infinite;
+      }
+
+      @keyframes chrome-shine {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+      }
+
+      /* Game area container */
+      #gameContainer {
+        flex: 1;
+        position: relative;
+        margin: 10px;
+        border: 3px solid #ffffff;
+        border-radius: 15px;
+        box-shadow: 0 0 30px rgba(255, 255, 255, 0.4);
+        overflow: hidden;
       }
 
       #gameCanvas {
         display: block;
-        cursor: crosshair;
+        cursor: none; /* Hide default cursor */
         width: 100%;
         height: 100%;
         border-radius: 12px;
         background: transparent;
+      }
+
+      /* Custom Cursor System */
+      #customCursor {
+        position: fixed;
+        pointer-events: none;
+        z-index: 9999;
+        transform: translate(-50%, -50%);
+        transition: opacity 0.2s ease;
+      }
+
+      /* Sharp pointer cursor */
+      .cursor-pointer {
+        width: 0;
+        height: 0;
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-bottom: 20px solid #ffffff;
+        filter: drop-shadow(0 0 3px rgba(0,0,0,0.8)) drop-shadow(0 0 6px #ffffff);
+      }
+
+      /* Streak cursor with number */
+      .cursor-streak {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .cursor-streak .streak-pointer {
+        width: 0;
+        height: 0;
+        border-left: 10px solid transparent;
+        border-right: 10px solid transparent;
+        border-bottom: 24px solid #FFD700;
+        filter: drop-shadow(0 0 4px rgba(0,0,0,0.8)) drop-shadow(0 0 8px #FFD700);
+      }
+
+      .cursor-streak .streak-number {
+        background: #FFD700;
+        color: #000;
+        font-weight: bold;
+        font-size: 14px;
+        padding: 4px 8px;
+        border-radius: 12px;
+        margin-top: 4px;
+        text-shadow: none;
+        box-shadow: 0 0 8px #FFD700;
+        min-width: 20px;
+        text-align: center;
       }
 
       #gameUI {
@@ -89,6 +187,7 @@
         transform: translateY(-2px);
         box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
       }
+
 
       #speedControl {
         position: absolute;
@@ -208,13 +307,231 @@
       .leaderboard-entry:nth-child(3) {
         border-left-color: #cd7f32;
       }
+
+      /* FULL-WIDTH SLOT MACHINE DISPLAY */
+      #slotMachineDisplay {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(145deg, #e6e6e6 0%, #cccccc 25%, #b3b3b3 50%, #999999 75%, #808080 100%);
+        border-bottom: 4px solid #666666;
+        box-shadow: 
+          inset 0 2px 4px rgba(255, 255, 255, 0.8),
+          inset 0 -2px 4px rgba(0, 0, 0, 0.3),
+          0 2px 8px rgba(0, 0, 0, 0.4);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        perspective: 1000px;
+      }
+
+      #slotMachineDisplay::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+        animation: machine-shine 3s infinite;
+      }
+
+      @keyframes machine-shine {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+      }
+
+      /* Rolling Numbers Container */
+      #scoreDigits {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 6px;
+        height: 80px;
+      }
+
+      /* Countdown Timer in Top Scoreboard */
+      #topTimer {
+        position: absolute;
+        right: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: linear-gradient(145deg, #1a1a1a 0%, #000000 50%, #1a1a1a 100%);
+        border: 3px solid #666;
+        border-radius: 12px;
+        padding: 15px 25px;
+        box-shadow: 
+          inset 0 4px 8px rgba(0, 0, 0, 0.8),
+          inset 0 -2px 4px rgba(255, 255, 255, 0.2),
+          0 2px 6px rgba(0, 0, 0, 0.4);
+        font-family: 'Courier New', monospace;
+        font-weight: bold;
+        font-size: 36px;
+        color: #00ff00;
+        text-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00;
+        min-width: 80px;
+        text-align: center;
+        z-index: 25;
+      }
+
+      /* Timer warning states */
+      #topTimer.warning {
+        color: #ffaa00;
+        text-shadow: 0 0 10px #ffaa00, 0 0 20px #ffaa00;
+        animation: timer-pulse 1s infinite;
+      }
+
+      #topTimer.critical {
+        color: #ff0000;
+        text-shadow: 0 0 10px #ff0000, 0 0 20px #ff0000;
+        animation: timer-pulse 0.5s infinite;
+      }
+
+      @keyframes timer-pulse {
+        0%, 100% { transform: translateY(-50%) scale(1); }
+        50% { transform: translateY(-50%) scale(1.05); }
+      }
+
+      /* Simplified Digit Container */
+      .digit-container {
+        width: 60px;
+        height: 80px;
+        position: relative;
+      }
+
+      /* The visible window showing the digit */
+      .digit-window {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(145deg, #1a1a1a 0%, #000000 50%, #1a1a1a 100%);
+        border: 3px solid #666;
+        border-radius: 8px;
+        overflow: hidden;
+        position: relative;
+        box-shadow: 
+          inset 0 4px 8px rgba(0, 0, 0, 0.8),
+          inset 0 -2px 4px rgba(255, 255, 255, 0.2),
+          0 2px 6px rgba(0, 0, 0, 0.4);
+      }
+
+      /* The spinning wheel strip */
+      .digit-wheel {
+        position: absolute;
+        width: 100%;
+        height: 800px; /* 10 digits × 80px each */
+        top: 0;
+        left: 0;
+        transition: transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      }
+
+      /* Individual digit in the wheel */
+      .digit-number {
+        position: absolute;
+        width: 100%;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Courier New', monospace;
+        font-weight: bold;
+        font-size: 52px;
+        color: #00ff00;
+        text-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00;
+        background: linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
+        border-top: 1px solid rgba(0, 255, 0, 0.2);
+        border-bottom: 1px solid rgba(0, 255, 0, 0.1);
+      }
+
+      /* Position digits vertically in the wheel */
+      .digit-number:nth-child(1) { top: 0px; }     /* 0 */
+      .digit-number:nth-child(2) { top: 80px; }    /* 1 */
+      .digit-number:nth-child(3) { top: 160px; }   /* 2 */
+      .digit-number:nth-child(4) { top: 240px; }   /* 3 */
+      .digit-number:nth-child(5) { top: 320px; }   /* 4 */
+      .digit-number:nth-child(6) { top: 400px; }   /* 5 */
+      .digit-number:nth-child(7) { top: 480px; }   /* 6 */
+      .digit-number:nth-child(8) { top: 560px; }   /* 7 */
+      .digit-number:nth-child(9) { top: 640px; }   /* 8 */
+      .digit-number:nth-child(10) { top: 720px; }  /* 9 */
+
+      /* Comma Separators */
+      .comma-separator {
+        width: 20px;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+        color: #888;
+        font-weight: bold;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+      }
+
+      /* Celebration Effects */
+      .celebration-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        overflow: hidden;
+        border-radius: 15px;
+      }
+
+      .sparkle {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: #FFD700;
+        border-radius: 50%;
+        box-shadow: 0 0 6px #FFD700;
+        animation: sparkle 1s ease-out forwards;
+      }
+
+      @keyframes sparkle {
+        0% {
+          opacity: 1;
+          transform: scale(0) rotate(0deg);
+        }
+        50% {
+          opacity: 1;
+          transform: scale(1) rotate(180deg);
+        }
+        100% {
+          opacity: 0;
+          transform: scale(0) rotate(360deg);
+        }
+      }
     </style>
   </head>
   <body>
-    <div id="gameContainer">
-      <canvas id="gameCanvas"></canvas>
+    <div id="mainContainer">
+      <!-- Top Scoreboard Area -->
+      <div id="scoreboardArea">
+        <div id="slotMachineDisplay">
+          <div id="scoreDigits"></div>
+          <div id="topTimer">20</div>
+          <div class="celebration-container" id="celebrationContainer"></div>
+        </div>
+      </div>
+      
+      <!-- Chrome Separator -->
+      <div id="chromeSeparator"></div>
+      
+      <!-- Game Area -->
+      <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        
+        <!-- Custom Cursor -->
+        <div id="customCursor">
+          <div class="cursor-pointer"></div>
+        </div>
       <div id="gameUI">
         <div>Level: <span id="levelDisplay">1</span></div>
+        <div>Score: <span id="scoreDisplay">0</span></div>
+        <div>Streak: <span id="streakDisplay">0</span></div>
         <div>Time: <span id="timer">20</span></div>
         <div>Total Time: <span id="cumulativeTimer">0</span>s</div>
         <div>Balloons: <span id="balloonCount">0</span></div>
@@ -243,13 +560,16 @@
         <div id="scorecardTitle">Game Statistics</div>
         <div id="currentStats">
           <h3>Current Game</h3>
+          <div>Score: <span id="scorecardCurrentScore">0</span></div>
           <div>Level Reached: <span id="scorecardCurrentLevel">1</span></div>
           <div>Balloons Popped: <span id="currentBalloons">0</span></div>
           <div>Time Played: <span id="currentTime">0</span>s</div>
+          <div>Streaks: <span id="currentStreaks">None</span></div>
         </div>
         <div id="totalStats">
           <h3>Total Statistics</h3>
           <div>Total Balloons Popped: <span id="totalBalloons">0</span></div>
+          <div>Total Streaks (5+): <span id="totalStreaksDisplay">0</span></div>
           <div>Total Time Played: <span id="totalTime">0</span>s</div>
         </div>
         <div id="leaderboard">
@@ -265,6 +585,9 @@
       const ctx = canvas.getContext("2d");
       const timerElement = document.getElementById("timer");
       const balloonCountElement = document.getElementById("balloonCount");
+      const scoreDisplayElement = document.getElementById("scoreDisplay");
+      const streakDisplayElement = document.getElementById("streakDisplay");
+      const topTimerElement = document.getElementById("topTimer");
       const gameOverElement = document.getElementById("gameOver");
       const gameOverText = document.getElementById("gameOverText");
       const levelDisplayElement = document.getElementById("levelDisplay");
@@ -274,6 +597,12 @@
       const levelStartElement = document.getElementById("levelStart");
       const levelStartText = document.getElementById("levelStartText");
       const startButton = document.getElementById("startButton");
+      
+      // Slot machine display elements
+      const scoreDigitsElement = document.getElementById("scoreDigits");
+      const celebrationContainer = document.getElementById("celebrationContainer");
+      const customCursor = document.getElementById("customCursor");
+      const mainContainer = document.getElementById("mainContainer");
 
       let gameRunning = false;
       let gameTime = 20;
@@ -304,6 +633,90 @@
       let totalBalloonsPopped = 0;
       let currentGameBalloons = 0;
       let gameStartTime = 0;
+
+      // New scoring system variables
+      let currentScore = 0;
+      let consecutiveHits = 0;
+      let currentStreakList = []; // List of completed streaks (5+) for current game
+      let totalStreaks = 0; // Total number of 5+ streaks achieved across all games
+      
+      // Slot machine system variables
+      let digitContainers = [];
+      let previousScore = 0;
+      
+      // ============================================================================
+      // URL PARAMETER DEBUGGING SYSTEM
+      // ============================================================================
+      
+      // Parse URL parameters for debugging
+      function parseUrlParams() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const params = {};
+        
+        // Parse level parameter
+        const levelParam = urlParams.get('level');
+        if (levelParam !== null) {
+          const level = parseInt(levelParam, 10);
+          if (!isNaN(level) && level >= 1 && level <= 10) {
+            params.level = level;
+          } else {
+            console.warn(`Invalid level parameter: ${levelParam}. Must be integer between 1-10. Using default level 1.`);
+          }
+        }
+        
+        // Parse score parameter
+        const scoreParam = urlParams.get('score');
+        if (scoreParam !== null) {
+          const score = parseInt(scoreParam, 10);
+          if (!isNaN(score) && score >= 0 && score <= Number.MAX_SAFE_INTEGER) {
+            params.score = score;
+          } else {
+            console.warn(`Invalid score parameter: ${scoreParam}. Must be non-negative integer. Using default score 0.`);
+          }
+        }
+        
+        return params;
+      }
+      
+      // Apply debug parameters if present in URL
+      function applyDebugParams() {
+        const params = parseUrlParams();
+        let debugApplied = false;
+        
+        console.log('🔧 Debug Parameter Check:');
+        console.log(`URL: ${window.location.href}`);
+        
+        // Apply level parameter
+        if (params.level !== undefined) {
+          const originalLevel = currentLevel;
+          currentLevel = params.level;
+          debugApplied = true;
+          console.log(`✅ Debug Level Applied: ${originalLevel} → ${currentLevel}`);
+        } else {
+          console.log(`ℹ️  Level: ${currentLevel} (default)`);
+        }
+        
+        // Apply score parameter
+        if (params.score !== undefined) {
+          const originalScore = currentScore;
+          currentScore = params.score;
+          previousScore = params.score; // Set previous score to match for proper display
+          debugApplied = true;
+          console.log(`✅ Debug Score Applied: ${originalScore.toLocaleString()} → ${currentScore.toLocaleString()}`);
+        } else {
+          console.log(`ℹ️  Score: ${currentScore.toLocaleString()} (default)`);
+        }
+        
+        if (debugApplied) {
+          console.log('🎮 Debug parameters have been applied! Game will start with custom values.');
+          console.log('💡 Usage: Add ?level=X&score=Y to URL (e.g., TSBalloonie.html?level=5&score=1000000)');
+        } else {
+          console.log('🎮 No debug parameters found. Starting with default values.');
+          console.log('💡 To use debug mode, add ?level=X&score=Y to URL (e.g., TSBalloonie.html?level=5&score=1000000)');
+        }
+        
+        return debugApplied;
+      }
 
       // Canvas resizing with DPR scaling
       function resizeCanvas() {
@@ -398,12 +811,10 @@
       }
       
       function applyBackgroundImage(imagePath, fallbackToStarfield = true) {
-        const gameContainer = document.getElementById('gameContainer');
-        
         if (!imagePath) {
           // Clear background and use starfield
-          gameContainer.style.backgroundImage = '';
-          gameContainer.style.backgroundColor = '#001122';
+          mainContainer.style.backgroundImage = '';
+          mainContainer.style.backgroundColor = '#001122';
           usingStarfieldFallback = true;
           console.log('No background image provided, using starfield fallback');
           return;
@@ -413,7 +824,7 @@
         const img = new Image();
         
         img.onload = function() {
-          gameContainer.style.backgroundImage = `url('${imagePath}')`;
+          mainContainer.style.backgroundImage = `url('${imagePath}')`;
           currentBackground = imagePath;
           usingStarfieldFallback = false;
           console.log('Background successfully applied:', imagePath);
@@ -422,8 +833,8 @@
         img.onerror = function() {
           console.warn('Failed to load background image:', imagePath);
           if (fallbackToStarfield) {
-            gameContainer.style.backgroundImage = '';
-            gameContainer.style.backgroundColor = '#001122';
+            mainContainer.style.backgroundImage = '';
+            mainContainer.style.backgroundColor = '#001122';
             usingStarfieldFallback = true;
             console.log('Background loading failed, using starfield fallback');
           }
@@ -545,6 +956,9 @@
         resizeCanvas();
         updateSpeedSlider();
         loadStatistics();
+        
+        // Apply debug parameters from URL if present
+        const debugApplied = applyDebugParams();
 
         // Discover available background images
         await discoverBackgroundImages();
@@ -554,12 +968,46 @@
         
         // Set splash screen background
         setSplashBackground();
-
+        
+        // Initialize slot machine scoring display
+        initializeScoreDisplay();
+        
         // Initialize speed display
         const effectiveSpeed = getLevelSpeed(currentLevel, balloonSpeed);
         speedValue.textContent = `${balloonSpeed.toFixed(
           1
         )} (${effectiveSpeed.toFixed(1)})`;
+        
+        // Setup cursor event listeners
+        canvas.addEventListener('mousemove', handleMouseMove);
+        canvas.addEventListener('mouseenter', handleMouseEnter);
+        canvas.addEventListener('mouseleave', handleMouseLeave);
+        
+        // Setup keyboard cheat listener (ALT-P)
+        document.addEventListener('keydown', (event) => {
+          if (event.altKey && (event.key === 'p' || event.key === 'P')) {
+            event.preventDefault(); // Prevent browser shortcuts
+            cheatPopRandomBalloon();
+          }
+        });
+        
+        // Update all displays (including slot machine with any debug values)
+        updateScoreDisplay();
+        updateStreakDisplay();
+        updateSlotMachineDisplay();
+        updateCursor();
+        updateTopTimer();
+        
+        if (debugApplied) {
+          console.log('🔧 All displays updated with debug values');
+        }
+        
+        // Log initialization complete and available features
+        console.log('🎮 TSBalloonie initialized successfully!');
+        console.log('💡 Available features:');
+        console.log('  • Cheat Code: ALT-P during gameplay to pop random balloon');
+        console.log('  • Debug Commands: Type debugHelp() in console for full list');
+        console.log('  • URL Parameters: ?level=X&score=Y for testing');
 
         showLevelStart();
 
@@ -588,6 +1036,7 @@
         levelStartText.textContent = `Level ${currentLevel} Ready`;
         levelStartElement.style.display = "block";
         gameOverElement.style.display = "none";
+        updateTopTimer(); // Reset timer display
         showGameUI(); // Show UI during splash screen
 
         // Select and store background for this entire level
@@ -659,6 +1108,11 @@
         // Update UI displays
         levelDisplayElement.textContent = currentLevel;
         cumulativeTimerElement.textContent = Math.floor(cumulativeTime / 1000);
+        updateScoreDisplay();
+        updateStreakDisplay();
+        updateSlotMachineDisplay();
+        updateCursor();
+        updateTopTimer();
 
         // Update speed display to show effective speed
         const effectiveSpeed = getLevelSpeed(currentLevel, balloonSpeed);
@@ -701,7 +1155,8 @@
       function gameLoop(now = performance.now()) {
         if (!gameRunning) return;
 
-        // Timers
+        // Update timers
+        updateTopTimer();
         const remaining = Math.max(0, Math.ceil((levelEndsAt - now) / 1000));
         timerElement.textContent = remaining;
 
@@ -873,6 +1328,363 @@
         }
       }
 
+      // Scoring helper functions
+      function calculateLevelPoints(level) {
+        return Math.pow(10, level - 1); // 1, 10, 100, 1000, etc.
+      }
+      
+      function processHit() {
+        // Calculate base points for this level
+        const basePoints = calculateLevelPoints(currentLevel);
+        let pointsEarned = basePoints;
+        
+        // Increment consecutive hits
+        consecutiveHits++;
+        
+        // Check for streak bonus (5+ consecutive hits)
+        if (consecutiveHits >= 5) {
+          const streakBonus = basePoints * 10; // 10x level points
+          pointsEarned += streakBonus;
+          console.log(`Streak bonus! ${consecutiveHits} consecutive hits = +${streakBonus} points`);
+        }
+        
+        // Add to total score
+        currentScore += pointsEarned;
+        
+        // Add 1 second to timer
+        levelEndsAt += 1000; // Add 1000ms (1 second)
+        
+        console.log(`Hit! +${pointsEarned} points (Level ${currentLevel}, Streak: ${consecutiveHits})`);
+        
+        // Update displays
+        updateScoreDisplay();
+        updateStreakDisplay();
+        updateSlotMachineDisplay();
+        updateCursor();
+        
+        return pointsEarned;
+      }
+      
+      function processMiss() {
+        // Record completed streak if it was 5+
+        if (consecutiveHits >= 5) {
+          currentStreakList.push(consecutiveHits);
+          console.log(`Streak ended: ${consecutiveHits} consecutive hits`);
+        }
+        
+        // Reset consecutive hits
+        consecutiveHits = 0;
+        console.log('Miss! Streak reset to 0');
+        
+        // Update displays
+        updateStreakDisplay();
+        updateCursor();
+      }
+      
+      // Display update functions
+      function updateScoreDisplay() {
+        scoreDisplayElement.textContent = currentScore.toLocaleString();
+      }
+      
+      function updateStreakDisplay() {
+        streakDisplayElement.textContent = consecutiveHits;
+        
+        // Visual indicator for streak bonus
+        if (consecutiveHits >= 5) {
+          streakDisplayElement.style.color = '#FFD700'; // Gold color for bonus
+          streakDisplayElement.style.fontWeight = 'bold';
+        } else {
+          streakDisplayElement.style.color = 'white';
+          streakDisplayElement.style.fontWeight = 'normal';
+        }
+      }
+      
+      // ============================================================================
+      // SLOT MACHINE SCORING SYSTEM
+      // ============================================================================
+      
+      // Initialize simplified spinning score display
+      function initializeScoreDisplay() {
+        const maxDigits = 15; // Handles up to 999 trillion
+        scoreDigitsElement.innerHTML = '';
+        digitContainers = [];
+        
+        for (let i = 0; i < maxDigits; i++) {
+          // Add comma separator every 3 digits (from right)
+          if (i > 0 && i % 3 === 0) {
+            const comma = document.createElement('div');
+            comma.className = 'comma-separator';
+            comma.textContent = ',';
+            scoreDigitsElement.appendChild(comma);
+          }
+          
+          const container = document.createElement('div');
+          container.className = 'digit-container';
+          
+          const window = document.createElement('div');
+          window.className = 'digit-window';
+          
+          const wheel = document.createElement('div');
+          wheel.className = 'digit-wheel';
+          
+          // Create 10 digits for the wheel (0-9)
+          for (let digit = 0; digit <= 9; digit++) {
+            const digitElement = document.createElement('div');
+            digitElement.className = 'digit-number';
+            digitElement.textContent = digit;
+            wheel.appendChild(digitElement);
+          }
+          
+          window.appendChild(wheel);
+          container.appendChild(window);
+          scoreDigitsElement.appendChild(container);
+          
+          digitContainers.push({container, wheel}); // Store in correct order (left to right)
+        }
+      }
+      
+      // Roll individual wheel to target number with settling effect
+      function rollDigit(digitObj, targetDigit, delay = 0) {
+        setTimeout(() => {
+          const wheel = digitObj.wheel;
+          const targetPosition = -targetDigit * 80; // 80px per digit
+          
+          // First spin past the target (overshoot)
+          const overshoot = targetPosition - 40; // Go 40px past
+          wheel.style.transition = 'transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+          wheel.style.transform = `translateY(${overshoot}px)`;
+          
+          // Then settle back to final position with bounce
+          setTimeout(() => {
+            wheel.style.transition = 'transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+            wheel.style.transform = `translateY(${targetPosition}px)`;
+          }, 800);
+          
+        }, delay);
+      }
+      
+      // Update score display with rolling animation
+      function updateSlotMachineDisplay() {
+        const scoreStr = currentScore.toString().padStart(15, '0');
+        const previousStr = previousScore.toString().padStart(15, '0');
+        
+        console.log(`Score update: ${previousScore.toLocaleString()} → ${currentScore.toLocaleString()}`);
+        
+        // Find which digits changed and animate them
+        for (let i = 0; i < 15; i++) {
+          const currentDigit = parseInt(scoreStr[i]);
+          const previousDigit = parseInt(previousStr[i]);
+          
+          if (currentDigit !== previousDigit) {
+            // Add small delay based on position for cascading effect
+            const delay = (14 - i) * 50; // Right-most digits first
+            console.log(`Position ${i}: ${previousDigit} → ${currentDigit} (delay: ${delay}ms)`);
+            rollDigit(digitContainers[i], currentDigit, delay);
+          }
+        }
+        
+        // Check for milestone celebrations
+        checkMilestones();
+        
+        previousScore = currentScore;
+      }
+      
+      // Update custom cursor based on streak
+      function updateCursor() {
+        if (consecutiveHits >= 5) {
+          // Show streak cursor with number below pointer
+          customCursor.innerHTML = `
+            <div class="cursor-streak">
+              <div class="streak-pointer"></div>
+              <div class="streak-number">${consecutiveHits}</div>
+            </div>
+          `;
+        } else {
+          // Show regular sharp pointer
+          customCursor.innerHTML = '<div class="cursor-pointer"></div>';
+        }
+      }
+      
+      // Handle mouse movement for custom cursor
+      function handleMouseMove(event) {
+        customCursor.style.left = event.clientX + 'px';
+        customCursor.style.top = event.clientY + 'px';
+      }
+      
+      // Show/hide cursor when entering/leaving canvas
+      function handleMouseEnter() {
+        customCursor.style.opacity = '1';
+      }
+      
+      function handleMouseLeave() {
+        customCursor.style.opacity = '0';
+      }
+      
+      // Check for score milestones and trigger celebrations
+      function checkMilestones() {
+        const prevMillion = Math.floor(previousScore / 1000000);
+        const currMillion = Math.floor(currentScore / 1000000);
+        const prevBillion = Math.floor(previousScore / 1000000000);
+        const currBillion = Math.floor(currentScore / 1000000000);
+        const prevTrillion = Math.floor(previousScore / 1000000000000);
+        const currTrillion = Math.floor(currentScore / 1000000000000);
+        const prevTenK = Math.floor(previousScore / 10000);
+        const currTenK = Math.floor(currentScore / 10000);
+        
+        // Check for trillion milestone
+        if (currTrillion > prevTrillion) {
+          console.log('🎉 TRILLION MILESTONE!');
+          triggerCelebration('trillion');
+        }
+        // Check for billion milestone
+        else if (currBillion > prevBillion) {
+          console.log('🎉 BILLION MILESTONE!');
+          triggerCelebration('billion');
+        }
+        // Check for million milestone
+        else if (currMillion > prevMillion) {
+          console.log('🎉 MILLION MILESTONE!');
+          triggerCelebration('million');
+        }
+        // Check for 10K milestones
+        else if (currTenK > prevTenK) {
+          console.log('🎉 10K MILESTONE!');
+          triggerCelebration('regular');
+        }
+      }
+      
+      // Trigger celebration effects
+      function triggerCelebration(type) {
+        console.log(`🎉 ${type.toUpperCase()} milestone celebration starting!`);
+        
+        const sparkleCount = {
+          'regular': 8,
+          'million': 20,
+          'billion': 40,
+          'trillion': 80
+        }[type] || 8;
+        
+        console.log(`Creating ${sparkleCount} sparkles for ${type} milestone`);
+        
+        // Create sparkle burst
+        for (let i = 0; i < sparkleCount; i++) {
+          setTimeout(() => {
+            createSparkle();
+            console.log(`Sparkle ${i + 1} created`);
+          }, i * 30); // Faster sparkle creation
+        }
+        
+        // Special effects for major milestones
+        if (type === 'billion' || type === 'trillion') {
+          console.log('Adding flash effect for major milestone');
+          setTimeout(() => flashMainDisplay(), 200);
+        }
+        
+        // Extra effects for trillion
+        if (type === 'trillion') {
+          console.log('Epic trillion celebration!');
+          // Add more flashes
+          setTimeout(() => flashMainDisplay(), 600);
+          setTimeout(() => flashMainDisplay(), 1000);
+        }
+      }
+      
+      // Create individual sparkle
+      function createSparkle() {
+        console.log('Creating sparkle element');
+        const sparkle = document.createElement('div');
+        sparkle.className = 'sparkle';
+        
+        // Random position within celebration container
+        const x = Math.random() * 100;
+        const y = Math.random() * 100;
+        sparkle.style.left = x + '%';
+        sparkle.style.top = y + '%';
+        
+        console.log(`Sparkle positioned at ${x.toFixed(1)}%, ${y.toFixed(1)}%`);
+        
+        if (celebrationContainer) {
+          celebrationContainer.appendChild(sparkle);
+          console.log('Sparkle added to celebration container');
+        } else {
+          console.error('Celebration container not found!');
+        }
+        
+        // Remove after animation
+        setTimeout(() => {
+          if (sparkle.parentNode) {
+            sparkle.parentNode.removeChild(sparkle);
+            console.log('Sparkle removed');
+          }
+        }, 1000);
+      }
+      
+      // Flash effect for major milestones
+      function flashMainDisplay() {
+        const mainDisplay = document.getElementById('slotMachineDisplay');
+        mainDisplay.style.background = 'linear-gradient(145deg, #fff 0%, #f0f0f0 50%, #e0e0e0 100%)';
+        
+        setTimeout(() => {
+          mainDisplay.style.background = 'linear-gradient(145deg, #e6e6e6 0%, #cccccc 25%, #b3b3b3 50%, #999999 75%, #808080 100%)';
+        }, 200);
+      }
+      
+      // Update top timer display with color coding
+      function updateTopTimer() {
+        if (!gameRunning) {
+          topTimerElement.textContent = '20';
+          topTimerElement.className = '';
+          return;
+        }
+        
+        const remaining = Math.max(0, Math.ceil((levelEndsAt - performance.now()) / 1000));
+        topTimerElement.textContent = remaining;
+        
+        // Update timer color based on remaining time
+        topTimerElement.className = '';
+        if (remaining <= 3) {
+          topTimerElement.classList.add('critical');
+        } else if (remaining <= 7) {
+          topTimerElement.classList.add('warning');
+        }
+      }
+      
+      // ============================================================================
+      // CHEAT SYSTEM
+      // ============================================================================
+      
+      // Cheat function: Pop a random balloon (ALT-P)
+      function cheatPopRandomBalloon() {
+        // Only work during active gameplay
+        if (!gameRunning) {
+          console.log('🎮 Cheat ignored: Game not running');
+          return;
+        }
+        
+        // Find all active (non-popping) balloons
+        const activeBalloons = balloons.filter((b) => !b.popping);
+        
+        if (activeBalloons.length === 0) {
+          console.log('🎮 Cheat ignored: No active balloons to pop');
+          return;
+        }
+        
+        // Select a random active balloon
+        const randomIndex = Math.floor(Math.random() * activeBalloons.length);
+        const targetBalloon = activeBalloons[randomIndex];
+        
+        // Apply popping logic (same as normal click)
+        targetBalloon.popping = true;
+        targetBalloon.popAnimation = 0;
+        currentGameBalloons++;
+        
+        // Process the hit for scoring
+        processHit();
+        
+        console.log('🎮 Cheat activated: Random balloon popped!');
+      }
+
+
       // Handle mouse clicks (CSS px coords)
       canvas.addEventListener("click", (event) => {
         if (!gameRunning) return;
@@ -882,6 +1694,8 @@
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
 
+        let hitBalloon = false;
+        
         for (const b of balloons) {
           if (b.popping) continue;
           const dx = x - b.x, dy = y - b.y;
@@ -896,8 +1710,17 @@
             b.popping = true;
             b.popAnimation = 0;
             currentGameBalloons++;
+            
+            // Process the hit for scoring
+            processHit();
+            hitBalloon = true;
             break;
           }
+        }
+        
+        // If no balloon was hit, process as a miss
+        if (!hitBalloon) {
+          processMiss();
         }
       });
 
@@ -920,6 +1743,7 @@
           if (currentLevel < 10) {
             // Advance to next level
             currentLevel++;
+            console.log(`Level up! Advancing to Level ${currentLevel}, maintaining streak of ${consecutiveHits} hits`);
             gameOverText.innerHTML = `Level ${
               currentLevel - 1
             } Complete!<br>Moving to Level ${currentLevel}`;
@@ -959,6 +1783,18 @@
         currentLevel = 1;
         cumulativeTime = 0;
         currentGameBalloons = 0;
+        
+        // Reset scoring variables
+        currentScore = 0;
+        previousScore = 0;
+        consecutiveHits = 0;
+        currentStreakList = [];
+        
+        // Reset slot machine display
+        updateSlotMachineDisplay();
+        updateCursor();
+        updateTopTimer();
+        
         cumulativeTimerElement.textContent = "0";
         showLevelStart();
       }
@@ -969,12 +1805,14 @@
         if (stats) {
           const parsed = JSON.parse(stats);
           totalBalloonsPopped = parsed.totalBalloonsPopped || 0;
+          totalStreaks = parsed.totalStreaks || 0;
         }
       }
 
       function saveStatistics() {
         const stats = {
           totalBalloonsPopped: totalBalloonsPopped,
+          totalStreaks: totalStreaks,
           totalTimePlayed:
             parseInt(localStorage.getItem("balloonGameTotalTime") || "0") +
             Math.floor(cumulativeTime / 1000),
@@ -987,10 +1825,18 @@
       }
 
       function saveGameToLeaderboard() {
+        // Add any remaining streak if game ended during a streak
+        let finalStreakList = [...currentStreakList];
+        if (consecutiveHits >= 5) {
+          finalStreakList.push(consecutiveHits);
+        }
+        
         const gameData = {
+          score: currentScore,
           level: currentLevel,
           balloons: currentGameBalloons,
           time: Math.floor(cumulativeTime / 1000),
+          streaks: finalStreakList,
           date: new Date().toLocaleDateString(),
         };
 
@@ -999,12 +1845,9 @@
         );
         leaderboard.push(gameData);
 
-        // Sort by level (descending), then by time (ascending)
+        // Sort by score (descending) - highest score first
         leaderboard.sort((a, b) => {
-          if (a.level !== b.level) {
-            return b.level - a.level; // Higher level first
-          }
-          return a.time - b.time; // Lower time first for same level
+          return (b.score || 0) - (a.score || 0); // Handle old entries without score
         });
 
         // Keep only top 5
@@ -1016,6 +1859,7 @@
 
         // Update total statistics
         totalBalloonsPopped += currentGameBalloons;
+        totalStreaks += finalStreakList.length; // Add number of 5+ streaks achieved
         saveStatistics();
       }
 
@@ -1023,6 +1867,8 @@
         loadStatistics();
 
         // Update current game stats
+        document.getElementById("scorecardCurrentScore").textContent =
+          currentScore.toLocaleString();
         document.getElementById("scorecardCurrentLevel").textContent =
           currentLevel;
         document.getElementById("currentBalloons").textContent =
@@ -1030,6 +1876,11 @@
         document.getElementById("currentTime").textContent = Math.floor(
           cumulativeTime / 1000
         );
+        
+        // Update current streaks display
+        const streaksText = currentStreakList.length > 0 ? 
+          currentStreakList.join(", ") : "None";
+        document.getElementById("currentStreaks").textContent = streaksText;
 
         // Update total stats
         const totalTime = parseInt(
@@ -1037,6 +1888,8 @@
         );
         document.getElementById("totalBalloons").textContent =
           totalBalloonsPopped;
+        document.getElementById("totalStreaksDisplay").textContent =
+          totalStreaks;
         document.getElementById("totalTime").textContent = totalTime;
 
         // Update leaderboard
@@ -1051,12 +1904,17 @@
         } else {
           leaderboardList.innerHTML = leaderboard
             .map(
-              (game, index) =>
-                `<div class="leaderboard-entry">
-                        #${index + 1} - Level ${game.level} | ${
+              (game, index) => {
+                const score = (game.score || 0).toLocaleString();
+                const streaksText = game.streaks && game.streaks.length > 0 ? 
+                  game.streaks.join(", ") : "None";
+                return `<div class="leaderboard-entry">
+                        #${index + 1} - ${score} pts | Level ${game.level} | ${
                   game.balloons
-                } balloons | ${game.time}s | ${game.date}
-                    </div>`
+                } balloons | ${game.time}s<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;Streaks: ${streaksText} | ${game.date}
+                    </div>`;
+              }
             )
             .join("");
         }
@@ -1087,19 +1945,77 @@
       
       // Debug function to show current state
       window.debugState = function() {
-        console.log('=== BACKGROUND SYSTEM DEBUG ===');
-        console.log('Available backgrounds:', availableBackgrounds);
-        console.log(`Total backgrounds found: ${availableBackgrounds.length}`);
-        console.log('Current background:', currentBackground);
-        console.log('Current level background:', currentLevelBackground);
-        console.log('Using starfield fallback:', usingStarfieldFallback);
-        console.log('Splash background:', splashBackground);
-        console.log('Current level:', currentLevel);
-        console.log('================================');
+        console.log('=== GAME STATE DEBUG ===');
+        console.log('Current Level:', currentLevel);
+        console.log('Current Score:', currentScore.toLocaleString());
+        console.log('Consecutive Hits:', consecutiveHits);
+        console.log('Current Game Streaks (5+):', currentStreakList);
+        console.log('Total Balloons Popped:', currentGameBalloons);
+        console.log('Game Running:', gameRunning);
+        console.log('Available backgrounds:', availableBackgrounds.length);
+        console.log('Current background:', currentLevelBackground);
+        console.log('========================');
+      };
+      
+      // Debug function to simulate hits/misses for testing
+      window.debugHit = function() {
+        if (!gameRunning) {
+          console.log('Game not running! Start a level first.');
+          return;
+        }
+        processHit();
+        console.log(`Debug hit processed. Score: ${currentScore}, Streak: ${consecutiveHits}`);
+      };
+      
+      window.debugMiss = function() {
+        if (!gameRunning) {
+          console.log('Game not running! Start a level first.');
+          return;
+        }
+        processMiss();
+        console.log(`Debug miss processed. Streak reset. Completed streaks: ${currentStreakList}`);
+      };
+      
+      // Debug function to test URL parameters manually
+      window.debugUrlParams = function() {
+        console.log('🔧 URL Parameter Debug Info:');
+        console.log('Current URL:', window.location.href);
+        const params = parseUrlParams();
+        console.log('Parsed parameters:', params);
+        console.log('Current game state:');
+        console.log('  Level:', currentLevel);
+        console.log('  Score:', currentScore.toLocaleString());
+        console.log('  Streak:', consecutiveHits);
+        console.log('');
+        console.log('💡 Example URLs:');
+        console.log('  Start at level 5: TSBalloonie.html?level=5');
+        console.log('  Start with 1M points: TSBalloonie.html?score=1000000');
+        console.log('  Level 8 with 50M points: TSBalloonie.html?level=8&score=50000000');
+      };
+      
+      // Debug function to test cheat manually
+      window.debugCheat = function() {
+        console.log('🎮 Testing ALT-P cheat manually...');
+        cheatPopRandomBalloon();
+      };
+      
+      // Debug function to show all available commands
+      window.debugHelp = function() {
+        console.log('🔧 Available Debug Commands:');
+        console.log('  debugState() - Show current game state');
+        console.log('  debugHit() - Simulate a hit');
+        console.log('  debugMiss() - Simulate a miss');
+        console.log('  debugCheat() - Test ALT-P cheat');
+        console.log('  debugUrlParams() - Show URL parameter info');
+        console.log('  debugBackground(filename) - Test background image');
+        console.log('');
+        console.log('🎮 Cheat Codes:');
+        console.log('  ALT-P during gameplay - Pop random balloon');
       };
 
       // Initialize the game when page loads
       window.addEventListener("load", init);
     </script>
+    </div>
   </body>
 </html>
