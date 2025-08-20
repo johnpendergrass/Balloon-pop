@@ -15,6 +15,12 @@
         overflow: hidden;
         display: flex;
         flex-direction: column;
+        cursor: none; /* Hide default cursor globally, use custom cursor */
+      }
+
+      /* Override cursor for interactive elements */
+      button, input, label {
+        cursor: pointer !important;
       }
 
       /* Full-screen background container */
@@ -94,6 +100,7 @@
         z-index: 9999;
         transform: translate(-50%, -50%);
         transition: opacity 0.2s ease;
+        opacity: 1; /* Start visible */
       }
 
       /* Sharp pointer cursor */
@@ -189,29 +196,6 @@
       }
 
 
-      #speedControl {
-        position: absolute;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        color: white;
-        font-size: clamp(12px, 2vw, 18px);
-        font-weight: bold;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-        z-index: 10;
-        background: rgba(0, 0, 0, 0.3);
-        padding: 10px 20px;
-        border-radius: 10px;
-        backdrop-filter: blur(5px);
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-
-      #speedSlider {
-        width: 100px;
-        margin: 0 5px;
-      }
 
       #levelStart {
         position: absolute;
@@ -224,67 +208,422 @@
         text-align: center;
         text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
         z-index: 25;
-        background: rgba(0, 0, 0, 0.8);
-        padding: 30px;
-        border-radius: 15px;
-        backdrop-filter: blur(10px);
       }
 
-      #startButton {
-        margin-top: 20px;
-        padding: clamp(10px, 2vw, 15px) clamp(20px, 4vw, 30px);
-        font-size: clamp(16px, 3vw, 24px);
-        background-color: #2196f3;
-        color: white;
-        border: none;
-        border-radius: 8px;
+      /* Splash screen info box - Toy Story chrome style */
+      #splashInfoBox {
+        position: fixed;
+        bottom: 25px;
+        right: 25px;
+        background: linear-gradient(145deg, #e8e8e8 0%, #c0c0c0 25%, #d4d4d4 50%, #a8a8a8 75%, #bcbcbc 100%);
+        border: 3px solid #666;
+        border-radius: 15px;
+        padding: 16px 20px;
+        box-shadow: 
+          inset 0 4px 8px rgba(255, 255, 255, 0.6),
+          inset 0 -2px 4px rgba(0, 0, 0, 0.3),
+          0 4px 12px rgba(0, 0, 0, 0.4),
+          0 2px 6px rgba(0, 0, 0, 0.2);
+        text-align: center;
+        font-family: 'Comic Sans MS', 'Arial Black', sans-serif;
+        z-index: 30;
+        min-width: 200px;
+        max-width: 250px;
+      }
+
+      .info-text {
+        color: #2c5282;
+        font-size: 14px;
+        font-weight: bold;
+        margin: 4px 0;
+        text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+      }
+
+
+      /* Skill level label */
+      .skill-level-label {
+        color: #2c5282;
+        font-family: 'Comic Sans MS', 'Arial Black', sans-serif;
+        font-size: 11px;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 6px;
+        text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+      }
+
+      /* Difficulty Selection Radio Buttons */
+      .difficulty-selection {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        gap: 8px;
+      }
+
+      .radio-option {
+        flex: 1;
         cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        text-align: center;
+        padding: 6px 8px;
+        border-radius: 8px;
+        border: 2px solid transparent;
+        font-family: 'Comic Sans MS', 'Arial Black', sans-serif;
+        font-size: 12px;
+        font-weight: bold;
+        transition: all 0.2s ease;
+        position: relative;
       }
 
-      #startButton:hover {
-        background-color: #1976d2;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
-      }
-
-      #scorecard {
-        position: absolute;
-        top: 50%;
-        left: 20%;
-        transform: translate(-50%, -50%);
-        background: rgba(0, 0, 0, 0.9);
-        color: white;
-        padding: 20px;
-        border-radius: 15px;
-        backdrop-filter: blur(15px);
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        z-index: 15;
+      .radio-option input[type="radio"] {
         display: none;
-        width: 300px;
-        max-height: 70vh;
+      }
+
+      .radio-option span {
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+      }
+
+      /* Rex - Green (Easy) */
+      .radio-option.rex {
+        background: linear-gradient(145deg, #48bb78, #38a169);
+        color: white;
+        box-shadow: 
+          0 3px 6px rgba(0, 0, 0, 0.2),
+          inset 0 1px 2px rgba(255, 255, 255, 0.3);
+      }
+
+      .radio-option.rex:hover {
+        background: linear-gradient(145deg, #68d391, #48bb78);
+        transform: translateY(-1px);
+      }
+
+      .radio-option.rex input:checked ~ span {
+        text-shadow: 0 0 4px rgba(255, 255, 255, 0.8);
+      }
+
+      .radio-option.rex input:checked {
+        ~ .radio-option.rex {
+          transform: translateY(1px);
+          box-shadow: 
+            inset 0 2px 4px rgba(0, 0, 0, 0.3),
+            inset 0 -1px 2px rgba(255, 255, 255, 0.1),
+            0 1px 3px rgba(0, 0, 0, 0.1);
+          background: linear-gradient(145deg, #38a169, #2f855a);
+        }
+      }
+
+      /* Proper selected state for Rex */
+      .radio-option.rex:has(input:checked) {
+        transform: translateY(1px);
+        box-shadow: 
+          inset 0 2px 4px rgba(0, 0, 0, 0.3),
+          inset 0 -1px 2px rgba(255, 255, 255, 0.1),
+          0 1px 3px rgba(0, 0, 0, 0.1);
+        background: linear-gradient(145deg, #38a169, #2f855a);
+      }
+
+      /* Woody - Yellow/Brown (Medium) */
+      .radio-option.woody {
+        background: linear-gradient(145deg, #ed8936, #d69e2e);
+        color: white;
+        box-shadow: 
+          0 3px 6px rgba(0, 0, 0, 0.2),
+          inset 0 1px 2px rgba(255, 255, 255, 0.3);
+      }
+
+      .radio-option.woody:hover {
+        background: linear-gradient(145deg, #f6ad55, #ed8936);
+        transform: translateY(-1px);
+      }
+
+      .radio-option.woody input:checked + span {
+        text-shadow: 0 0 4px rgba(255, 255, 255, 0.8);
+      }
+
+      /* Proper selected state for Woody */
+      .radio-option.woody:has(input:checked) {
+        transform: translateY(1px);
+        box-shadow: 
+          inset 0 2px 4px rgba(0, 0, 0, 0.3),
+          inset 0 -1px 2px rgba(255, 255, 255, 0.1),
+          0 1px 3px rgba(0, 0, 0, 0.1);
+        background: linear-gradient(145deg, #d69e2e, #b7791f);
+      }
+
+      /* Buzz - Blue (Hard) */
+      .radio-option.buzz {
+        background: linear-gradient(145deg, #4299e1, #3182ce);
+        color: white;
+        box-shadow: 
+          0 3px 6px rgba(0, 0, 0, 0.2),
+          inset 0 1px 2px rgba(255, 255, 255, 0.3);
+      }
+
+      .radio-option.buzz:hover {
+        background: linear-gradient(145deg, #63b3ed, #4299e1);
+        transform: translateY(-1px);
+      }
+
+      .radio-option.buzz input:checked + span {
+        text-shadow: 0 0 4px rgba(255, 255, 255, 0.8);
+      }
+
+      /* Proper selected state for Buzz */
+      .radio-option.buzz:has(input:checked) {
+        transform: translateY(1px);
+        box-shadow: 
+          inset 0 2px 4px rgba(0, 0, 0, 0.3),
+          inset 0 -1px 2px rgba(255, 255, 255, 0.1),
+          0 1px 3px rgba(0, 0, 0, 0.1);
+        background: linear-gradient(145deg, #3182ce, #2c5282);
+      }
+
+
+      /* Game Summary Box - Toy Story chrome style */
+      #gameSummary {
+        position: absolute;
+        top: 15%;
+        right: 3%;
+        background: linear-gradient(145deg, #e8e8e8 0%, #c0c0c0 25%, #d4d4d4 50%, #a8a8a8 75%, #bcbcbc 100%);
+        border: 4px solid #666;
+        border-radius: 20px;
+        padding: 24px 30px;
+        box-shadow: 
+          inset 0 6px 12px rgba(255, 255, 255, 0.6),
+          inset 0 -3px 6px rgba(0, 0, 0, 0.3),
+          0 6px 20px rgba(0, 0, 0, 0.4),
+          0 3px 10px rgba(0, 0, 0, 0.3);
+        font-family: 'Comic Sans MS', 'Arial Black', sans-serif;
+        z-index: 30;
+        min-width: 380px;
+        max-width: 450px;
+      }
+
+      .summary-header {
+        color: #2c5282;
+        font-size: 22px;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 16px;
+        text-shadow: 0 2px 4px rgba(255, 255, 255, 0.8);
+        border-bottom: 2px solid #999;
+        padding-bottom: 8px;
+      }
+
+      .summary-content {
+        color: #2c5282;
+        font-size: 16px;
+        font-weight: bold;
+      }
+
+      .summary-line {
+        margin: 8px 0;
+        display: flex;
+        justify-content: space-between;
+        text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+      }
+
+      .summary-divider {
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #999, transparent);
+        margin: 12px 0;
+      }
+
+      .summary-total {
+        margin: 12px 0;
+        font-size: 18px;
+        font-weight: bold;
+        color: #d63447;
+        text-align: center;
+        text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+      }
+
+      .summary-stats {
+        margin-top: 12px;
+        font-size: 14px;
+        color: #5a5a5a;
+        text-align: center;
+        border-top: 1px solid #aaa;
+        padding-top: 8px;
+      }
+
+      .summary-stats div {
+        margin: 4px 0;
+        text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+      }
+
+      .section-label {
+        color: #2c5282;
+        font-size: 16px;
+        font-weight: bold;
+        margin: 12px 0 6px 0;
+        text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+      }
+
+      .summary-line-indent {
+        margin: 6px 0;
+        padding-left: 20px;
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+        color: #2c5282;
+        text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+      }
+
+      .summary-spacer {
+        height: 8px;
+      }
+
+      .summary-major-divider {
+        height: 3px;
+        background: linear-gradient(90deg, transparent, #666, transparent);
+        margin: 12px 0;
+        border-radius: 2px;
+      }
+
+      /* Bottom-left Leaderboard Box - Toy Story chrome style */
+      #leaderboardBox {
+        position: fixed;
+        bottom: 25px;
+        left: 25px;
+        background: linear-gradient(145deg, #e8e8e8 0%, #c0c0c0 25%, #d4d4d4 50%, #a8a8a8 75%, #bcbcbc 100%);
+        border: 3px solid #666;
+        border-radius: 15px;
+        padding: 16px 20px;
+        box-shadow: 
+          inset 0 4px 8px rgba(255, 255, 255, 0.6),
+          inset 0 -2px 4px rgba(0, 0, 0, 0.3),
+          0 4px 12px rgba(0, 0, 0, 0.4),
+          0 2px 6px rgba(0, 0, 0, 0.2);
+        font-family: 'Comic Sans MS', 'Arial Black', sans-serif;
+        z-index: 30;
+        min-width: 300px;
+        max-width: 400px;
+      }
+
+      .leaderboard-header {
+        color: #2c5282;
+        font-size: 16px;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 12px;
+        text-shadow: 0 2px 4px rgba(255, 255, 255, 0.8);
+        border-bottom: 2px solid #999;
+        padding-bottom: 6px;
+      }
+
+      #leaderboardBox #leaderboardList {
+        margin-top: 10px;
+        max-height: 300px;
         overflow-y: auto;
       }
 
-      #scorecardTitle {
-        font-size: clamp(24px, 4vw, 36px);
+      #leaderboardBox .leaderboard-entry {
+        background: rgba(255, 255, 255, 0.3);
+        padding: 8px 12px;
+        margin: 6px 0;
+        border-radius: 8px;
+        border-left: 4px solid #ffd700;
+        font-size: 12px;
+        color: #2c5282;
+        text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+      }
+
+      /* Toy Story Rocket Button */
+      #startButton {
+        margin-top: 20px;
+        padding: 18px 40px;
+        font-family: 'Comic Sans MS', 'Arial Black', sans-serif;
+        font-size: clamp(18px, 3vw, 26px);
         font-weight: bold;
-        text-align: center;
-        margin-bottom: 20px;
-        color: #ffd700;
+        color: white;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+        border: none;
+        border-radius: 25px;
+        cursor: pointer !important; /* Override global cursor: none */
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        
+        /* Rocket-style gradient - red to orange like Toy Story rockets */
+        background: linear-gradient(145deg, 
+          #ff4757 0%, 
+          #ff6b7a 15%, 
+          #ff3742 30%, 
+          #ff6348 50%, 
+          #ff4757 70%, 
+          #e55039 85%, 
+          #c44569 100%);
+        
+        /* Multiple shadows for depth */
+        box-shadow: 
+          0 8px 16px rgba(255, 71, 87, 0.4),
+          0 4px 8px rgba(0, 0, 0, 0.3),
+          inset 0 2px 4px rgba(255, 255, 255, 0.3),
+          inset 0 -2px 4px rgba(0, 0, 0, 0.2);
       }
 
-      #scorecard h3 {
-        color: #4ecdc4;
-        margin: 15px 0 10px 0;
-        font-size: clamp(16px, 3vw, 20px);
+      /* Rocket flame effect */
+      #startButton::before {
+        content: '🚀';
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 1.2em;
+        animation: rocket-pulse 2s infinite ease-in-out;
       }
 
-      #scorecard div:not(h3):not(#scorecardTitle) {
-        margin: 8px 0;
-        font-size: clamp(14px, 2.5vw, 18px);
+      /* Rocket exhaust trail effect */
+      #startButton::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        right: -10px;
+        width: 20px;
+        height: 8px;
+        background: linear-gradient(90deg, 
+          rgba(255, 165, 0, 0.8) 0%, 
+          rgba(255, 69, 0, 0.6) 50%, 
+          transparent 100%);
+        border-radius: 50%;
+        transform: translateY(-50%);
+        animation: exhaust-flicker 0.5s infinite alternate;
       }
+
+      @keyframes rocket-pulse {
+        0%, 100% { transform: translateY(-50%) scale(1); }
+        50% { transform: translateY(-50%) scale(1.1); }
+      }
+
+      @keyframes exhaust-flicker {
+        0% { opacity: 0.6; width: 20px; }
+        100% { opacity: 1; width: 30px; }
+      }
+
+      #startButton:hover {
+        background: linear-gradient(145deg, 
+          #ff6b7a 0%, 
+          #ff8a9b 15%, 
+          #ff5252 30%, 
+          #ff7979 50%, 
+          #ff6b7a 70%, 
+          #fd79a8 85%, 
+          #e84393 100%);
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 
+          0 12px 24px rgba(255, 71, 87, 0.5),
+          0 6px 12px rgba(0, 0, 0, 0.4),
+          inset 0 2px 4px rgba(255, 255, 255, 0.4),
+          inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      #startButton:active {
+        transform: translateY(-1px) scale(1.02);
+        box-shadow: 
+          0 6px 12px rgba(255, 71, 87, 0.4),
+          0 3px 6px rgba(0, 0, 0, 0.3),
+          inset 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
 
       #leaderboardList {
         margin-top: 10px;
@@ -326,6 +665,21 @@
         perspective: 1000px;
       }
 
+      #scoreDigits {
+        font-size: 2.5em;
+        font-weight: bold;
+        color: #333;
+        text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+        flex: 1;
+        text-align: center;
+        font-family: 'Arial Black', Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 6px;
+        height: 80px;
+      }
+
       #slotMachineDisplay::before {
         content: '';
         position: absolute;
@@ -342,16 +696,45 @@
         100% { transform: translateX(100%); }
       }
 
-      /* Rolling Numbers Container */
-      #scoreDigits {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 6px;
-        height: 80px;
-      }
+      /* Rolling Numbers Container - merged above */
 
       /* Countdown Timer in Top Scoreboard */
+      /* Current Level Display in Top Scoreboard */
+      #topLevelDisplay {
+        position: absolute;
+        left: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: linear-gradient(145deg, #1a1a1a 0%, #000000 50%, #1a1a1a 100%);
+        border: 3px solid #666;
+        border-radius: 12px;
+        padding: 15px 25px;
+        box-shadow: 
+          inset 0 4px 8px rgba(0, 0, 0, 0.8),
+          inset 0 -2px 4px rgba(255, 255, 255, 0.2),
+          0 2px 6px rgba(0, 0, 0, 0.4);
+        font-family: 'Courier New', monospace;
+        font-weight: bold;
+        text-align: center;
+        z-index: 25;
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        min-width: 120px;
+      }
+      
+      .level-text {
+        font-size: 20px;
+        color: #cccccc;
+        text-shadow: 0 0 6px #cccccc;
+      }
+      
+      .level-number {
+        font-size: 36px;
+        color: #00aaff;
+        text-shadow: 0 0 10px #00aaff, 0 0 20px #00aaff;
+      }
+
       #topTimer {
         position: absolute;
         right: 20px;
@@ -475,7 +858,11 @@
       <!-- Top Scoreboard Area -->
       <div id="scoreboardArea">
         <div id="slotMachineDisplay">
-          <div id="scoreDigits"></div>
+          <div id="topLevelDisplay">
+            <span class="level-text">Level</span>
+            <span class="level-number">1</span>
+          </div>
+          <div id="scoreDigits">0</div>
           <div id="topTimer">20</div>
         </div>
       </div>
@@ -486,11 +873,12 @@
       <!-- Game Area -->
       <div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
-        
-        <!-- Custom Cursor -->
-        <div id="customCursor">
-          <div class="cursor-pointer"></div>
-        </div>
+      </div>
+      
+      <!-- Custom Cursor - Global positioning -->
+      <div id="customCursor">
+        <div class="cursor-pointer"></div>
+      </div>
       <div id="gameUI">
         <div>Level: <span id="levelDisplay">1</span></div>
         <div>Score: <span id="scoreDisplay">0</span></div>
@@ -499,47 +887,76 @@
         <div>Total Time: <span id="cumulativeTimer">0</span>s</div>
         <div>Balloons: <span id="balloonCount">0</span></div>
       </div>
-      <div id="speedControl">
-        <label for="speedSlider">Speed: </label>
-        <input
-          type="range"
-          id="speedSlider"
-          min="0.5"
-          max="5.0"
-          step="0.1"
-          value="1.5"
-        />
-        <span id="speedValue">1.5</span>
-      </div>
       <div id="levelStart">
-        <div id="levelStartText">Level 1 Ready</div>
-        <button id="startButton" onclick="startLevel()">Start Level</button>
+        <button id="startButton" onclick="startLevel()">Launch Next Level ➤</button>
+      </div>
+      
+      <!-- Info box in bottom right corner -->
+      <div id="splashInfoBox">
+        <div class="skill-level-label">Skill level</div>
+        <div class="difficulty-selection">
+          <label class="radio-option rex">
+            <input type="radio" name="difficulty" value="rex" />
+            <span>Rex</span>
+          </label>
+          <label class="radio-option woody">
+            <input type="radio" name="difficulty" value="woody" checked />
+            <span>Woody</span>
+          </label>
+          <label class="radio-option buzz">
+            <input type="radio" name="difficulty" value="buzz" />
+            <span>Buzz</span>
+          </label>
+        </div>
+        <div class="info-text">ALT-P for cheat</div>
+        <div class="info-text">Created by plutonic/Poppy</div>
       </div>
       <div id="gameOver">
         <div id="gameOverText"></div>
         <button class="restart-btn" onclick="resetGame()">Play Again</button>
       </div>
-      <div id="scorecard">
-        <div id="scorecardTitle">Game Statistics</div>
-        <div id="currentStats">
-          <h3>Current Game</h3>
-          <div>Score: <span id="scorecardCurrentScore">0</span></div>
-          <div>Level Reached: <span id="scorecardCurrentLevel">1</span></div>
-          <div>Balloons Popped: <span id="currentBalloons">0</span></div>
-          <div>Time Played: <span id="currentTime">0</span>s</div>
-          <div>Streaks: <span id="currentStreaks">None</span></div>
-        </div>
-        <div id="totalStats">
-          <h3>Total Statistics</h3>
-          <div>Total Balloons Popped: <span id="totalBalloons">0</span></div>
-          <div>Total Streaks (5+): <span id="totalStreaksDisplay">0</span></div>
-          <div>Total Time Played: <span id="totalTime">0</span>s</div>
-        </div>
-        <div id="leaderboard">
-          <h3>Top 5 Games</h3>
-          <div id="leaderboardList"></div>
+
+      <!-- Game Summary Box -->
+      <div id="gameSummary" style="display: none;">
+        <div class="summary-header">LEVEL <span id="summaryLevelNumber">1</span> CLEARED!</div>
+        <div class="summary-content">
+          <div class="section-label">Level Stats:</div>
+          <div class="summary-line-indent">Balloon Points: <span id="summaryBalloonPoints">0</span></div>
+          <div class="summary-line-indent">Streak Bonus: <span id="summaryStreakPoints">0</span></div>
+          <div class="summary-line-indent">Numbered Balloon bonus: <span id="summarySequencePoints">0</span></div>
+          <div class="summary-divider"></div>
+          <div class="summary-total">Total Level Score: <span id="summaryTotalPoints">0</span></div>
+          
+          <div class="summary-spacer"></div>
+          <div class="summary-line">Level Time: <span id="summaryTime">0</span>s</div>
+          <div class="summary-line">Level Balloons popped: <span id="summaryLevelBalloons">0</span></div>
+          <div class="summary-line">Current popping streak: <span id="summaryStreak">0</span></div>
+          
+          <div class="summary-major-divider"></div>
+          
+          <div class="summary-line">Game Score: <span id="summaryGameScore">0</span></div>
+          <div class="summary-line">Game Time: <span id="summaryGameTime">0</span>s</div>
+          <div class="summary-line">Game Balloons popped: <span id="summaryGameBalloons">0</span></div>
+          <div class="summary-line">Game longest popping streak: <span id="summaryLongestStreak">0</span></div>
         </div>
       </div>
+
+      <!-- Bottom-left Leaderboard Box -->
+      <div id="leaderboardBox" style="display: none;">
+        <div class="leaderboard-header">Top 5 Games</div>
+        <div id="leaderboardList">
+          <div style="color: #888;">No games completed yet</div>
+        </div>
+        <div style="text-align: center; margin-top: 15px;">
+          <button onclick="hideLeaderboard()" class="start-button" style="margin-right: 10px;">
+            Continue
+          </button>
+          <button onclick="resetHighScores()" class="start-button">
+            Reset Scores
+          </button>
+        </div>
+      </div>
+
     </div>
 
     <script>
@@ -551,14 +968,28 @@
       const scoreDisplayElement = document.getElementById("scoreDisplay");
       const streakDisplayElement = document.getElementById("streakDisplay");
       const topTimerElement = document.getElementById("topTimer");
+      const topLevelDisplay = document.getElementById("topLevelDisplay");
+      const levelNumberElement = document.querySelector(".level-number");
+      
+      // Game summary elements
+      const gameSummaryElement = document.getElementById("gameSummary");
+      const summaryLevelNumber = document.getElementById("summaryLevelNumber");
+      const summaryBalloonPoints = document.getElementById("summaryBalloonPoints");
+      const summaryStreakPoints = document.getElementById("summaryStreakPoints");
+      const summarySequencePoints = document.getElementById("summarySequencePoints");
+      const summaryTotalPoints = document.getElementById("summaryTotalPoints");
+      const summaryTime = document.getElementById("summaryTime");
+      const summaryStreak = document.getElementById("summaryStreak");
+      const summaryGameScore = document.getElementById("summaryGameScore");
+      const summaryLevelBalloons = document.getElementById("summaryLevelBalloons");
+      const summaryGameTime = document.getElementById("summaryGameTime");
+      const summaryGameBalloons = document.getElementById("summaryGameBalloons");
+      const summaryLongestStreak = document.getElementById("summaryLongestStreak");
       const gameOverElement = document.getElementById("gameOver");
       const gameOverText = document.getElementById("gameOverText");
       const levelDisplayElement = document.getElementById("levelDisplay");
       const cumulativeTimerElement = document.getElementById("cumulativeTimer");
-      const speedSlider = document.getElementById("speedSlider");
-      const speedValue = document.getElementById("speedValue");
       const levelStartElement = document.getElementById("levelStart");
-      const levelStartText = document.getElementById("levelStartText");
       const startButton = document.getElementById("startButton");
       
       // Slot machine display elements
@@ -586,6 +1017,16 @@
       // Sequence bonus system
       let sequenceProgress = 0; // Next number in sequence we're looking for (0 means sequence not started)
       let maxSequenceNumber = 0; // Highest number assigned to balloons in current level
+
+      // Level scoring breakdown tracking
+      let levelBalloonPoints = 0; // Points from just popping balloons
+      let levelStreakPoints = 0; // Points from streak bonuses
+      let levelSequencePoints = 0; // Points from sequence bonuses
+
+      // Game-level statistics tracking
+      let gameBalloonsPopped = 0; // Total balloons popped across all levels
+      let longestStreak = 0; // Longest streak achieved during the entire game
+      let gameStartTime = 0; // Start time of the entire game
       let splashBackground = null;
       let currentLevelBackground = null; // Track background for current level
       let usingStarfieldFallback = true; // Start with starfield until background loads
@@ -598,7 +1039,6 @@
       // Game statistics
       let totalBalloonsPopped = 0;
       let currentGameBalloons = 0;
-      let gameStartTime = 0;
 
       // New scoring system variables
       let currentScore = 0;
@@ -834,9 +1274,10 @@
       }
 
       function getLevelBalloonSize(level) {
-        // Level 1: medium-large (40-60px), Level 10: small-medium (15-35px)
-        const baseMinRadius = 40 - ((level - 1) * (40 - 15)) / 9;
-        const baseMaxRadius = 60 - ((level - 1) * (60 - 35)) / 9;
+        // Keep balloon sizes consistent across all levels (easy-medium difficulty)
+        // Use Level 1 size for all levels: medium-large balloons
+        const baseMinRadius = 40; // Consistent size
+        const baseMaxRadius = 60; // Consistent size
 
         // Apply size variation (0.75x to 1.25x) and then increase by 50%
         const minRadius = Math.floor(baseMinRadius * 0.75 * 1.5); // 50% larger
@@ -846,36 +1287,53 @@
       }
 
       function getLevelSpeed(level, baseSpeed) {
-        // Linear progression from 1.5 at level 1 to 5.0 at level 10
-        const levelMultiplier = 1.5 + ((level - 1) * (5.0 - 1.5)) / 9; // 1.5 to 5.0 over 9 steps
+        // Gentler progression: Level 1 = 1.5, Level 10 = 3.0 (was 5.0)
+        // This makes Level 10 about the same speed as old Level 5
+        const levelMultiplier = 1.5 + ((level - 1) * (3.0 - 1.5)) / 9; // 1.5 to 3.0 over 9 steps
         return (baseSpeed / 1.5) * levelMultiplier; // Adjust based on slider position
       }
 
-      function updateSpeedSlider() {
-        speedSlider.addEventListener("input", function () {
-          balloonSpeed = parseFloat(this.value);
-          const effectiveSpeed = getLevelSpeed(currentLevel, balloonSpeed);
-          speedValue.textContent = `${balloonSpeed.toFixed(
-            1
-          )} (${effectiveSpeed.toFixed(1)})`;
+      function setupDifficultySelection() {
+        const difficultyRadios = document.querySelectorAll('input[name="difficulty"]');
+        
+        difficultyRadios.forEach(radio => {
+          radio.addEventListener('change', function() {
+            if (this.checked) {
+              switch(this.value) {
+                case 'rex':
+                  balloonSpeed = 1.3; // Easy
+                  break;
+                case 'woody':
+                  balloonSpeed = 1.5; // Medium
+                  break;
+                case 'buzz':
+                  balloonSpeed = 2.0; // Hard
+                  break;
+              }
+              
+              console.log(`Difficulty changed to ${this.value}: ${balloonSpeed}`);
+              
+              // Update existing balloon speeds if game is running
+              if (gameRunning) {
+                balloons.forEach((balloon) => {
+                  if (!balloon.popping) {
+                    const currentSpeed = Math.sqrt(
+                      balloon.vx * balloon.vx + balloon.vy * balloon.vy
+                    );
+                    if (currentSpeed > 0) {
+                      // Recalculate this balloon's individual speed with new base speed
+                      const newBaseSpeed = getLevelSpeed(currentLevel, balloonSpeed);
+                      const speedRatio =
+                        balloon.individualSpeed / getLevelSpeed(currentLevel, 1.5); // Original ratio
+                      balloon.individualSpeed = newBaseSpeed * speedRatio;
 
-          // Update existing balloon speeds while maintaining their individual speed ratios
-          balloons.forEach((balloon) => {
-            if (!balloon.popping) {
-              const currentSpeed = Math.sqrt(
-                balloon.vx * balloon.vx + balloon.vy * balloon.vy
-              );
-              if (currentSpeed > 0) {
-                // Recalculate this balloon's individual speed with new base speed
-                const newBaseSpeed = getLevelSpeed(currentLevel, balloonSpeed);
-                const speedRatio =
-                  balloon.individualSpeed / getLevelSpeed(currentLevel, 1.5); // Original ratio
-                balloon.individualSpeed = newBaseSpeed * speedRatio;
-
-                // Update velocity to match new individual speed
-                const ratio = balloon.individualSpeed / currentSpeed;
-                balloon.vx *= ratio;
-                balloon.vy *= ratio;
+                      // Update velocity to match new individual speed
+                      const ratio = balloon.individualSpeed / currentSpeed;
+                      balloon.vx *= ratio;
+                      balloon.vy *= ratio;
+                    }
+                  }
+                });
               }
             }
           });
@@ -921,7 +1379,7 @@
       // Initialize the game
       async function init() {
         resizeCanvas();
-        updateSpeedSlider();
+        setupDifficultySelection();
         loadStatistics();
         
         // Apply debug parameters from URL if present
@@ -936,19 +1394,21 @@
         // Set splash screen background
         setSplashBackground();
         
-        // Initialize slot machine scoring display
+        // Initialize score display
         initializeScoreDisplay();
         
-        // Initialize speed display
-        const effectiveSpeed = getLevelSpeed(currentLevel, balloonSpeed);
-        speedValue.textContent = `${balloonSpeed.toFixed(
-          1
-        )} (${effectiveSpeed.toFixed(1)})`;
+        // Setup cursor event listeners - make cursor visible globally
+        document.addEventListener('mousemove', handleMouseMove);
+        // Keep cursor always visible during game
+        customCursor.style.opacity = '1';
+        customCursor.style.display = 'block';
         
-        // Setup cursor event listeners
-        canvas.addEventListener('mousemove', handleMouseMove);
-        canvas.addEventListener('mouseenter', handleMouseEnter);
-        canvas.addEventListener('mouseleave', handleMouseLeave);
+        // Set initial cursor position
+        customCursor.style.left = '100px';
+        customCursor.style.top = '100px';
+        
+        // Initial cursor update to set proper content
+        updateCursor();
         
         // Setup keyboard cheat listener (ALT-P)
         document.addEventListener('keydown', (event) => {
@@ -964,6 +1424,7 @@
         updateSlotMachineDisplay();
         updateCursor();
         updateTopTimer();
+        updateTopLevel();
         
         if (debugApplied) {
           console.log('🔧 All displays updated with debug values');
@@ -1000,8 +1461,9 @@
       // Show level start screen
       function showLevelStart() {
         waitingForStart = true;
-        levelStartText.textContent = `Level ${currentLevel} Ready`;
+        startButton.textContent = `Launch Level ${currentLevel} ➤`;
         levelStartElement.style.display = "block";
+        document.getElementById("splashInfoBox").style.display = "block"; // Show info box on splash screen
         gameOverElement.style.display = "none";
         updateTopTimer(); // Reset timer display
         showGameUI(); // Show UI during splash screen
@@ -1025,20 +1487,24 @@
         // Apply the selected background for this level
         applyBackgroundImage(currentLevelBackground);
 
-        // Show scorecard before starting
-        showScorecard();
+        // Show leaderboard before starting
+        showLeaderboard();
       }
 
       // Start level function
       function startLevel() {
         waitingForStart = false;
         levelStartElement.style.display = "none";
-        hideScorecard();
-        hideGameUI(); // Hide UI during gameplay
+        document.getElementById("splashInfoBox").style.display = "none"; // Hide info box during gameplay
+        hideGameSummary(); // Hide game summary when starting
+        hideLeaderboard();
+        // Note: UI visibility will be handled by game state
         levelStartTime = performance.now();
         if (currentLevel === 1) {
           gameStartTime = performance.now();
           currentGameBalloons = 0;
+          gameBalloonsPopped = 0; // Reset game stats for new game
+          longestStreak = 0;
         }
 
         // Keep the same background that was set in showLevelStart()
@@ -1081,12 +1547,6 @@
         updateCursor();
         updateTopTimer();
 
-        // Update speed display to show effective speed
-        const effectiveSpeed = getLevelSpeed(currentLevel, balloonSpeed);
-        speedValue.textContent = `${balloonSpeed.toFixed(
-          1
-        )} (${effectiveSpeed.toFixed(1)})`;
-
         // Create balloons based on current level
         const balloonCount = getLevelBalloonCount(currentLevel);
         const sizeRange = getLevelBalloonSize(currentLevel);
@@ -1106,6 +1566,11 @@
         // Reset sequence tracking for new level
         sequenceProgress = 0;
         maxSequenceNumber = 0;
+        
+        // Reset level scoring breakdown tracking
+        levelBalloonPoints = 0;
+        levelStreakPoints = 0;
+        levelSequencePoints = 0;
 
         // First, create all balloons with their sizes
         const w = cssWidth(), h = cssHeight();
@@ -1404,14 +1869,26 @@
         // Calculate base points for this level
         const basePoints = calculateLevelPoints(currentLevel);
         let pointsEarned = basePoints;
+        let streakBonus = 0;
+        let sequenceBonus = 0;
+        
+        // Track balloon points
+        levelBalloonPoints += basePoints;
+        gameBalloonsPopped++; // Track total game balloons
         
         // Increment consecutive hits
         consecutiveHits++;
         
+        // Update longest streak if current streak is longer
+        if (consecutiveHits > longestStreak) {
+          longestStreak = consecutiveHits;
+        }
+        
         // Check for streak bonus (5+ consecutive hits)
         if (consecutiveHits >= 5) {
-          const streakBonus = basePoints * 10; // 10x level points
+          streakBonus = basePoints * 10; // 10x level points
           pointsEarned += streakBonus;
+          levelStreakPoints += streakBonus; // Track streak points
           console.log(`Streak bonus! ${consecutiveHits} consecutive hits = +${streakBonus} points`);
         }
         
@@ -1422,8 +1899,9 @@
           if (hitBalloon.number === expectedNumber) {
             // Correct sequence! Award bonus points
             sequenceProgress++;
-            const sequenceBonus = calculateSequenceBonus(currentLevel);
+            sequenceBonus = calculateSequenceBonus(currentLevel);
             pointsEarned += sequenceBonus;
+            levelSequencePoints += sequenceBonus; // Track sequence points
             console.log(`Sequence bonus! Hit #${hitBalloon.number} in order = +${sequenceBonus} points`);
           } else {
             console.log(`Sequence broken! Hit #${hitBalloon.number} but expected #${expectedNumber}`);
@@ -1485,44 +1963,11 @@
       // SLOT MACHINE SCORING SYSTEM
       // ============================================================================
       
-      // Initialize simplified spinning score display
+      // Initialize simplified score display
       function initializeScoreDisplay() {
-        const maxDigits = 15; // Handles up to 999 trillion
-        scoreDigitsElement.innerHTML = '';
-        digitContainers = [];
-        
-        for (let i = 0; i < maxDigits; i++) {
-          // Add comma separator every 3 digits (from right)
-          if (i > 0 && i % 3 === 0) {
-            const comma = document.createElement('div');
-            comma.className = 'comma-separator';
-            comma.textContent = ',';
-            scoreDigitsElement.appendChild(comma);
-          }
-          
-          const container = document.createElement('div');
-          container.className = 'digit-container';
-          
-          const window = document.createElement('div');
-          window.className = 'digit-window';
-          
-          const wheel = document.createElement('div');
-          wheel.className = 'digit-wheel';
-          
-          // Create 10 digits for the wheel (0-9)
-          for (let digit = 0; digit <= 9; digit++) {
-            const digitElement = document.createElement('div');
-            digitElement.className = 'digit-number';
-            digitElement.textContent = digit;
-            wheel.appendChild(digitElement);
-          }
-          
-          window.appendChild(wheel);
-          container.appendChild(window);
-          scoreDigitsElement.appendChild(container);
-          
-          digitContainers.push({container, wheel}); // Store in correct order (left to right)
-        }
+        // Initialize with simple text display first
+        scoreDigitsElement.textContent = currentScore.toLocaleString();
+        console.log('Score display initialized with:', currentScore.toLocaleString());
       }
       
       // Roll individual wheel to target number with settling effect
@@ -1547,26 +1992,9 @@
       
       // Update score display with rolling animation
       function updateSlotMachineDisplay() {
-        const scoreStr = currentScore.toString().padStart(15, '0');
-        const previousStr = previousScore.toString().padStart(15, '0');
-        
-        console.log(`Score update: ${previousScore.toLocaleString()} → ${currentScore.toLocaleString()}`);
-        
-        // Find which digits changed and animate them
-        for (let i = 0; i < 15; i++) {
-          const currentDigit = parseInt(scoreStr[i]);
-          const previousDigit = parseInt(previousStr[i]);
-          
-          if (currentDigit !== previousDigit) {
-            // Add small delay based on position for cascading effect
-            const delay = (14 - i) * 50; // Right-most digits first
-            console.log(`Position ${i}: ${previousDigit} → ${currentDigit} (delay: ${delay}ms)`);
-            rollDigit(digitContainers[i], currentDigit, delay);
-          }
-        }
-        
-        
-        previousScore = currentScore;
+        // Simplified score display for debugging
+        scoreDigitsElement.textContent = currentScore.toLocaleString();
+        console.log(`Score display updated: ${currentScore.toLocaleString()}`);
       }
       
       // Update custom cursor based on streak
@@ -1591,16 +2019,19 @@
         customCursor.style.top = event.clientY + 'px';
       }
       
-      // Show/hide cursor when entering/leaving canvas
-      function handleMouseEnter() {
-        customCursor.style.opacity = '1';
+      // Keep cursor always visible (removed enter/leave handlers that caused flickering)
+      
+      // ============================================================================
+      // SCORE DISPLAY SYSTEM
+      // ============================================================================
+      
+      // Note: updateSlotMachineDisplay() is defined above with slot machine animation
+      
+      // Update top level display
+      function updateTopLevel() {
+        levelNumberElement.textContent = currentLevel;
       }
-      
-      function handleMouseLeave() {
-        customCursor.style.opacity = '0';
-      }
-      
-      
+
       // Update top timer display with color coding
       function updateTopTimer() {
         if (!gameRunning) {
@@ -1730,8 +2161,12 @@
 
         if (playerWon) {
           if (currentLevel < 10) {
+            // Show level completion summary before advancing
+            showGameSummary(levelTime);
+            
             // Advance to next level
             currentLevel++;
+            updateTopLevel(); // Update level display
             console.log(`Level up! Advancing to Level ${currentLevel}, maintaining streak of ${consecutiveHits} hits`);
             gameOverText.innerHTML = `Level ${
               currentLevel - 1
@@ -1744,7 +2179,9 @@
               showLevelStart();
             }, 2000);
           } else {
-            // Game completed!
+            // Game completed! Show final level summary
+            showGameSummary(levelTime);
+            
             gameOverText.innerHTML = `🎉 Game Complete! 🎉<br>All 10 levels finished!<br>Total Time: ${Math.floor(
               cumulativeTime / 1000
             )}s`;
@@ -1852,36 +2289,10 @@
         saveStatistics();
       }
 
-      function showScorecard() {
+      function showLeaderboard() {
         loadStatistics();
 
-        // Update current game stats
-        document.getElementById("scorecardCurrentScore").textContent =
-          currentScore.toLocaleString();
-        document.getElementById("scorecardCurrentLevel").textContent =
-          currentLevel;
-        document.getElementById("currentBalloons").textContent =
-          currentGameBalloons;
-        document.getElementById("currentTime").textContent = Math.floor(
-          cumulativeTime / 1000
-        );
-        
-        // Update current streaks display
-        const streaksText = currentStreakList.length > 0 ? 
-          currentStreakList.join(", ") : "None";
-        document.getElementById("currentStreaks").textContent = streaksText;
-
-        // Update total stats
-        const totalTime = parseInt(
-          localStorage.getItem("balloonGameTotalTime") || "0"
-        );
-        document.getElementById("totalBalloons").textContent =
-          totalBalloonsPopped;
-        document.getElementById("totalStreaksDisplay").textContent =
-          totalStreaks;
-        document.getElementById("totalTime").textContent = totalTime;
-
-        // Update leaderboard
+        // Update leaderboard in the new bottom-left box
         const leaderboard = JSON.parse(
           localStorage.getItem("balloonGameLeaderboard") || "[]"
         );
@@ -1908,22 +2319,68 @@
             .join("");
         }
 
-        document.getElementById("scorecard").style.display = "block";
+        document.getElementById("leaderboardBox").style.display = "block";
       }
 
-      function hideScorecard() {
-        document.getElementById("scorecard").style.display = "none";
+      // Reset high scores function
+      function resetHighScores() {
+        if (confirm("Are you sure you want to reset all high scores? This cannot be undone.")) {
+          localStorage.removeItem("balloonGameLeaderboard");
+          localStorage.removeItem("balloonGameStats");
+          localStorage.removeItem("balloonGameTotalTime");
+          alert("High scores have been reset!");
+          console.log("🗑️ High scores and statistics cleared");
+          
+          // Refresh the leaderboard display if it's currently shown
+          if (document.getElementById("leaderboardBox").style.display === "block") {
+            showLeaderboard();
+          }
+        }
+      }
+
+      // Show game summary with comprehensive statistics
+      function showGameSummary(levelTime) {
+        const totalLevelPoints = levelBalloonPoints + levelStreakPoints + levelSequencePoints;
+        const totalGameTime = performance.now() - gameStartTime;
+        
+        // Populate the comprehensive summary box
+        summaryLevelNumber.textContent = currentLevel; // Current level that was just completed
+        summaryBalloonPoints.textContent = levelBalloonPoints.toLocaleString();
+        summaryStreakPoints.textContent = levelStreakPoints.toLocaleString();
+        summarySequencePoints.textContent = levelSequencePoints.toLocaleString();
+        summaryTotalPoints.textContent = totalLevelPoints.toLocaleString();
+        
+        // Level stats
+        summaryTime.textContent = Math.floor(levelTime / 1000);
+        summaryLevelBalloons.textContent = currentGameBalloons; // Balloons popped in this level
+        summaryStreak.textContent = consecutiveHits;
+        
+        // Game stats  
+        summaryGameScore.textContent = currentScore.toLocaleString();
+        summaryGameTime.textContent = Math.floor(totalGameTime / 1000);
+        summaryGameBalloons.textContent = gameBalloonsPopped;
+        summaryLongestStreak.textContent = longestStreak;
+        
+        // Show the summary box and hide the game UI (stays visible until start button is clicked)
+        gameSummaryElement.style.display = "block";
+        hideGameUI(); // Hide the top-left UI elements
+      }
+
+      function hideGameSummary() {
+        gameSummaryElement.style.display = "none";
+      }
+
+      function hideLeaderboard() {
+        document.getElementById("leaderboardBox").style.display = "none";
       }
 
       // UI visibility functions
       function showGameUI() {
         document.getElementById("gameUI").style.display = "block";
-        document.getElementById("speedControl").style.display = "flex";
       }
 
       function hideGameUI() {
         document.getElementById("gameUI").style.display = "none";
-        document.getElementById("speedControl").style.display = "none";
       }
 
       // Debug function to manually test background
