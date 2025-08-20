@@ -582,6 +582,10 @@
       // Background image system
       let availableBackgrounds = [];
       let currentBackground = null;
+
+      // Sequence bonus system
+      let sequenceProgress = 0; // Next number in sequence we're looking for (0 means sequence not started)
+      let maxSequenceNumber = 0; // Highest number assigned to balloons in current level
       let splashBackground = null;
       let currentLevelBackground = null; // Track background for current level
       let usingStarfieldFallback = true; // Start with starfield until background loads
@@ -880,11 +884,12 @@
 
       // Balloon class will be implemented next
       class Balloon {
-        constructor(x, y, radius, color) {
+        constructor(x, y, radius, color, number = null) {
           this.x = x;
           this.y = y;
           this.radius = radius;
           this.color = color;
+          this.number = number; // Sequential number for bonus scoring (null if no number)
 
           // Individual speed variation (0.75x to 1.25x of level speed)
           const baseSpeed = getLevelSpeed(currentLevel, balloonSpeed);
@@ -1098,7 +1103,13 @@
           "#85C1E9",
         ];
 
+        // Reset sequence tracking for new level
+        sequenceProgress = 0;
+        maxSequenceNumber = 0;
+
+        // First, create all balloons with their sizes
         const w = cssWidth(), h = cssHeight();
+        const tempBalloons = [];
         for (let i = 0; i < balloonCount; i++) {
           const radius =
             Math.random() * (sizeRange.max - sizeRange.min) + sizeRange.min;
@@ -1106,7 +1117,45 @@
           const y = Math.random() * (h - radius * 2) + radius;
           const color = colors[Math.floor(Math.random() * colors.length)];
 
-          balloons.push(new Balloon(x, y, radius, color));
+          tempBalloons.push({ x, y, radius, color });
+        }
+
+        // Sort balloons by size (radius) to identify mid-sized ones
+        tempBalloons.sort((a, b) => a.radius - b.radius);
+
+        // Determine which balloons get numbers (linear progression: level = number of balloons)
+        // Level 1: 1 balloon (no bonus), Level 2: 2 balloons, ..., Level 10: 10 balloons
+        let numberedBalloonIndices = [];
+        if (currentLevel >= 1) {
+          const smallestThird = Math.floor(balloonCount / 3);
+          const availableForNumbers = tempBalloons.slice(smallestThird); // Exclude smallest 1/3
+          const numberOfNumbered = currentLevel; // Level 1: 1, Level 2: 2, ..., Level 10: 10
+          
+          // Randomly select which of the available balloons get numbers
+          const selectedIndices = [];
+          while (selectedIndices.length < numberOfNumbered && selectedIndices.length < availableForNumbers.length) {
+            const randomIndex = Math.floor(Math.random() * availableForNumbers.length);
+            if (!selectedIndices.includes(randomIndex)) {
+              selectedIndices.push(randomIndex);
+            }
+          }
+          
+          // Convert back to original balloon indices
+          numberedBalloonIndices = selectedIndices.map(idx => idx + smallestThird);
+          maxSequenceNumber = numberOfNumbered;
+        }
+
+        // Create the actual balloon objects
+        for (let i = 0; i < tempBalloons.length; i++) {
+          const balloon = tempBalloons[i];
+          let number = null;
+          
+          // Assign sequential numbers to selected balloons
+          if (numberedBalloonIndices.includes(i)) {
+            number = numberedBalloonIndices.indexOf(i) + 1;
+          }
+          
+          balloons.push(new Balloon(balloon.x, balloon.y, balloon.radius, balloon.color, number));
         }
 
         updateBalloonCount();
@@ -1286,6 +1335,55 @@
               Math.PI * 2
             );
             ctx.fill();
+
+            // Draw number if balloon has one (Toy Story style)
+            if (balloon.number !== null) {
+              ctx.save();
+              
+              // Calculate font size based on balloon radius (fit comfortably inside)
+              const fontSize = Math.max(14, balloon.radius * 0.6);
+              
+              // Toy Story style font with bold, playful appearance
+              ctx.font = `bold ${fontSize}px "Comic Sans MS", "Arial Black", sans-serif`;
+              ctx.textAlign = "center";
+              ctx.textBaseline = "middle";
+              
+              // Multi-layer text for toy-like appearance with strong contrast
+              const numberText = balloon.number.toString();
+              
+              // Extra thick black outline for maximum visibility
+              ctx.strokeStyle = "#000000";
+              ctx.lineWidth = Math.max(4, fontSize * 0.2);
+              ctx.strokeText(numberText, balloon.x, balloon.y);
+              
+              // Medium black outline (second layer)
+              ctx.strokeStyle = "#000000";
+              ctx.lineWidth = Math.max(3, fontSize * 0.15);
+              ctx.strokeText(numberText, balloon.x, balloon.y);
+              
+              // White inner outline for extra contrast
+              ctx.strokeStyle = "#FFFFFF";
+              ctx.lineWidth = Math.max(2, fontSize * 0.08);
+              ctx.strokeText(numberText, balloon.x, balloon.y);
+              
+              // Colorful fill based on number (bright, playful colors)
+              const numberColors = [
+                "#FF0000", // 1 - Red
+                "#00FF00", // 2 - Green  
+                "#0000FF", // 3 - Blue
+                "#FFFF00", // 4 - Yellow
+                "#FF00FF", // 5 - Magenta
+                "#00FFFF", // 6 - Cyan
+                "#FF8000", // 7 - Orange
+                "#8000FF", // 8 - Purple
+                "#FF0080", // 9 - Pink
+                "#80FF00"  // 10+ - Lime
+              ];
+              ctx.fillStyle = numberColors[(balloon.number - 1) % numberColors.length];
+              ctx.fillText(numberText, balloon.x, balloon.y);
+              
+              ctx.restore();
+            }
           }
         }
       }
@@ -1295,7 +1393,14 @@
         return Math.pow(10, level - 1); // 1, 10, 100, 1000, etc.
       }
       
-      function processHit() {
+      function calculateSequenceBonus(level) {
+        // Exponential bonus: 10^(level+1) starting at level 2
+        // Level 2: 10^3 = 1,000, Level 3: 10^4 = 10,000, etc.
+        if (level < 2) return 0; // No sequence bonuses for level 1
+        return Math.pow(10, level + 1);
+      }
+      
+      function processHit(hitBalloon = null) {
         // Calculate base points for this level
         const basePoints = calculateLevelPoints(currentLevel);
         let pointsEarned = basePoints;
@@ -1308,6 +1413,21 @@
           const streakBonus = basePoints * 10; // 10x level points
           pointsEarned += streakBonus;
           console.log(`Streak bonus! ${consecutiveHits} consecutive hits = +${streakBonus} points`);
+        }
+        
+        // Check for sequence bonus (if balloon has a number)
+        if (hitBalloon && hitBalloon.number !== null) {
+          const expectedNumber = sequenceProgress + 1;
+          
+          if (hitBalloon.number === expectedNumber) {
+            // Correct sequence! Award bonus points
+            sequenceProgress++;
+            const sequenceBonus = calculateSequenceBonus(currentLevel);
+            pointsEarned += sequenceBonus;
+            console.log(`Sequence bonus! Hit #${hitBalloon.number} in order = +${sequenceBonus} points`);
+          } else {
+            console.log(`Sequence broken! Hit #${hitBalloon.number} but expected #${expectedNumber}`);
+          }
         }
         
         // Add to total score
@@ -1521,9 +1641,26 @@
           return;
         }
         
-        // Select a random active balloon
-        const randomIndex = Math.floor(Math.random() * activeBalloons.length);
-        const targetBalloon = activeBalloons[randomIndex];
+        let targetBalloon = null;
+        
+        // First priority: Find the next balloon in sequence
+        const nextSequenceNumber = sequenceProgress + 1;
+        const sequenceBalloon = activeBalloons.find(b => b.number === nextSequenceNumber);
+        
+        if (sequenceBalloon) {
+          targetBalloon = sequenceBalloon;
+          console.log(`🎯 Cheat: Popping sequence balloon #${nextSequenceNumber}`);
+        } else {
+          // No sequence balloon available, pop any random balloon
+          const randomIndex = Math.floor(Math.random() * activeBalloons.length);
+          targetBalloon = activeBalloons[randomIndex];
+          
+          if (targetBalloon.number !== null) {
+            console.log(`🎮 Cheat: Popping numbered balloon #${targetBalloon.number} (out of sequence)`);
+          } else {
+            console.log('🎮 Cheat: Popping regular balloon');
+          }
+        }
         
         // Apply popping logic (same as normal click)
         targetBalloon.popping = true;
@@ -1531,7 +1668,7 @@
         currentGameBalloons++;
         
         // Process the hit for scoring
-        processHit();
+        processHit(targetBalloon);
         
         console.log('🎮 Cheat activated: Random balloon popped!');
       }
@@ -1564,7 +1701,7 @@
             currentGameBalloons++;
             
             // Process the hit for scoring
-            processHit();
+            processHit(b);
             hitBalloon = true;
             break;
           }
@@ -1815,7 +1952,7 @@
           console.log('Game not running! Start a level first.');
           return;
         }
-        processHit();
+        processHit(); // Debug version doesn't specify balloon
         console.log(`Debug hit processed. Score: ${currentScore}, Streak: ${consecutiveHits}`);
       };
       
@@ -1851,6 +1988,31 @@
         cheatPopRandomBalloon();
       };
       
+      // Debug function to test sequence scoring calculations
+      window.debugSequenceScoring = function() {
+        console.log('🔢 Sequence Scoring Analysis:');
+        for (let level = 1; level <= 10; level++) {
+          const basePoints = calculateLevelPoints(level);
+          const sequenceBonus = calculateSequenceBonus(level);
+          const balloonCount = getLevelBalloonCount(level);
+          const numberedBalloons = level; // Level 1: 1, Level 2: 2, ..., Level 10: 10
+          const maxSequencePoints = numberedBalloons * sequenceBonus;
+          
+          console.log(`Level ${level}: Base=${basePoints}, SeqBonus=${sequenceBonus}, MaxSeq=${maxSequencePoints}`);
+        }
+        
+        // Calculate Level 10 theoretical maximum
+        const level10Regular = 241000000000; // Approximate from continuation file
+        const level10SequenceMax = 10 * calculateSequenceBonus(10); // 10 numbered balloons at level 10
+        const level10Total = level10Regular + level10SequenceMax;
+        
+        console.log(`\n🎯 Level 10 Theoretical Maximum:`);
+        console.log(`Regular scoring: ~${(level10Regular / 1000000000).toFixed(1)}B`);
+        console.log(`Sequence scoring: ~${(level10SequenceMax / 1000000000).toFixed(1)}B`);
+        console.log(`Total: ~${(level10Total / 1000000000).toFixed(1)}B`);
+        console.log(`Target achieved: ${level10Total >= 1000000000000 ? '✅' : '❌'}`);
+      };
+
       // Debug function to show all available commands
       window.debugHelp = function() {
         console.log('🔧 Available Debug Commands:');
@@ -1860,6 +2022,7 @@
         console.log('  debugCheat() - Test ALT-P cheat');
         console.log('  debugUrlParams() - Show URL parameter info');
         console.log('  debugBackground(filename) - Test background image');
+        console.log('  debugSequenceScoring() - Analyze sequence scoring potential');
         console.log('');
         console.log('🎮 Cheat Codes:');
         console.log('  ALT-P during gameplay - Pop random balloon');
