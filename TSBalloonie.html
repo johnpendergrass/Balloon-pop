@@ -98,7 +98,7 @@
         position: fixed;
         pointer-events: none;
         z-index: 9999;
-        transform: translate(-50%, -50%);
+        transform: translate(-50%, 0%);
         transition: opacity 0.2s ease;
         opacity: 1; /* Start visible */
       }
@@ -285,25 +285,15 @@
         text-shadow: 0 0 4px rgba(255, 255, 255, 0.8);
       }
 
-      .radio-option.rex input:checked {
-        ~ .radio-option.rex {
-          transform: translateY(1px);
-          box-shadow: 
-            inset 0 2px 4px rgba(0, 0, 0, 0.3),
-            inset 0 -1px 2px rgba(255, 255, 255, 0.1),
-            0 1px 3px rgba(0, 0, 0, 0.1);
-          background: linear-gradient(145deg, #38a169, #2f855a);
-        }
-      }
 
       /* Proper selected state for Rex */
       .radio-option.rex:has(input:checked) {
-        transform: translateY(1px);
+        border: 3px solid #32CD32;
         box-shadow: 
-          inset 0 2px 4px rgba(0, 0, 0, 0.3),
-          inset 0 -1px 2px rgba(255, 255, 255, 0.1),
-          0 1px 3px rgba(0, 0, 0, 0.1);
-        background: linear-gradient(145deg, #38a169, #2f855a);
+          0 0 8px rgba(50, 205, 50, 0.6),
+          0 3px 6px rgba(0, 0, 0, 0.2),
+          inset 0 1px 2px rgba(255, 255, 255, 0.3);
+        background: linear-gradient(145deg, #48bb78, #38a169);
       }
 
       /* Woody - Yellow/Brown (Medium) */
@@ -326,12 +316,12 @@
 
       /* Proper selected state for Woody */
       .radio-option.woody:has(input:checked) {
-        transform: translateY(1px);
+        border: 3px solid #FFD700;
         box-shadow: 
-          inset 0 2px 4px rgba(0, 0, 0, 0.3),
-          inset 0 -1px 2px rgba(255, 255, 255, 0.1),
-          0 1px 3px rgba(0, 0, 0, 0.1);
-        background: linear-gradient(145deg, #d69e2e, #b7791f);
+          0 0 8px rgba(255, 215, 0, 0.6),
+          0 3px 6px rgba(0, 0, 0, 0.2),
+          inset 0 1px 2px rgba(255, 255, 255, 0.3);
+        background: linear-gradient(145deg, #ed8936, #d69e2e);
       }
 
       /* Buzz - Blue (Hard) */
@@ -354,12 +344,12 @@
 
       /* Proper selected state for Buzz */
       .radio-option.buzz:has(input:checked) {
-        transform: translateY(1px);
+        border: 3px solid #00FFFF;
         box-shadow: 
-          inset 0 2px 4px rgba(0, 0, 0, 0.3),
-          inset 0 -1px 2px rgba(255, 255, 255, 0.1),
-          0 1px 3px rgba(0, 0, 0, 0.1);
-        background: linear-gradient(145deg, #3182ce, #2c5282);
+          0 0 8px rgba(0, 255, 255, 0.6),
+          0 3px 6px rgba(0, 0, 0, 0.2),
+          inset 0 1px 2px rgba(255, 255, 255, 0.3);
+        background: linear-gradient(145deg, #4299e1, #3182ce);
       }
 
 
@@ -427,9 +417,18 @@
         text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
       }
 
+      .summary-prior-score {
+        margin: 8px 0 4px 0;
+        font-size: 16px;
+        font-weight: bold;
+        color: #d63447;
+        text-align: center;
+        text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+      }
+
       .summary-game-score {
-        margin: 12px 0;
-        font-size: 18px;
+        margin: 4px 0 12px 0;
+        font-size: 20px;
         font-weight: bold;
         color: #d63447;
         text-align: center;
@@ -900,8 +899,8 @@
             <span>Buzz</span>
           </label>
         </div>
-        <div class="info-text">ALT-P for cheat</div>
-        <div class="info-text">Created by plutonic/Poppy</div>
+        <div class="info-text">ALT-P(op) for cheat</div>
+        <div class="info-text">Created by Poppy</div>
       </div>
       <div id="gameOver">
         <div id="gameOverText"></div>
@@ -931,6 +930,7 @@
           
           <div class="summary-major-divider"></div>
           
+          <div class="summary-prior-score">(Prior score: <span id="summaryPriorScore">0</span>)</div>
           <div class="summary-game-score">Game Score: <span id="summaryGameScore">0</span></div>
           <div class="summary-line">Game Time: <span id="summaryGameTime">0s</span></div>
           <div class="summary-line">Game Balloons popped: <span id="summaryGameBalloons">0</span></div>
@@ -974,6 +974,7 @@
       const summaryTotalPoints = document.getElementById("summaryTotalPoints");
       const summaryTime = document.getElementById("summaryTime");
       const summaryStreak = document.getElementById("summaryStreak");
+      const summaryPriorScore = document.getElementById("summaryPriorScore");
       const summaryGameScore = document.getElementById("summaryGameScore");
       const summaryLevelBalloons = document.getElementById("summaryLevelBalloons");
       const summaryGameTime = document.getElementById("summaryGameTime");
@@ -1287,11 +1288,57 @@
       }
 
       function setupDifficultySelection() {
+        console.log('🎛️ Setting up difficulty selection...');
         const difficultyRadios = document.querySelectorAll('input[name="difficulty"]');
+        const difficultyLabels = document.querySelectorAll('.radio-option');
+        
+        console.log(`📻 Found ${difficultyRadios.length} radio inputs and ${difficultyLabels.length} labels`);
+        
+        // Log initial states
+        difficultyRadios.forEach(radio => {
+          console.log(`📻 Initial state: ${radio.value} = ${radio.checked ? 'CHECKED' : 'unchecked'}`);
+        });
+        
+        // Add comprehensive mouse event debugging
+        difficultyLabels.forEach(label => {
+          const radioValue = label.querySelector('input').value;
+          
+          // Click event
+          label.addEventListener('click', function(event) {
+            console.log(`🖱️ Label CLICKED: ${radioValue} (target: ${event.target.tagName}, currentTarget: ${event.currentTarget.className})`);
+            console.log(`   Event details: bubbles=${event.bubbles}, cancelable=${event.cancelable}, defaultPrevented=${event.defaultPrevented}`);
+            
+            // Check if click reached the input
+            const input = this.querySelector('input');
+            setTimeout(() => {
+              console.log(`   Input state after click: checked=${input.checked}`);
+            }, 50);
+          });
+          
+          // Mouse events for debugging
+          label.addEventListener('mousedown', (e) => console.log(`🖱️ MouseDOWN: ${radioValue}`));
+          label.addEventListener('mouseup', (e) => console.log(`🖱️ MouseUP: ${radioValue}`));
+          label.addEventListener('mouseenter', (e) => console.log(`🖱️ MouseENTER: ${radioValue}`));
+          label.addEventListener('mouseleave', (e) => console.log(`🖱️ MouseLEAVE: ${radioValue}`));
+          
+          // Add event debugging to the input itself  
+          const input = label.querySelector('input');
+          input.addEventListener('click', function(event) {
+            console.log(`📻 Input CLICKED directly: ${this.value} (checked will be: ${!this.checked})`);
+          });
+        });
         
         difficultyRadios.forEach(radio => {
+          console.log(`🔗 Adding change listener to: ${radio.value}`);
           radio.addEventListener('change', function() {
+            console.log(`📻 Radio change event: ${this.value} -> checked: ${this.checked}`);
+            
             if (this.checked) {
+              // Log all current states
+              const allStates = [];
+              difficultyRadios.forEach(r => allStates.push(`${r.value}=${r.checked}`));
+              console.log(`✅ All radio states after change: ${allStates.join(', ')}`);
+              
               switch(this.value) {
                 case 'rex':
                   balloonSpeed = 1.3; // Easy
@@ -1304,7 +1351,7 @@
                   break;
               }
               
-              console.log(`Difficulty changed to ${this.value}: ${balloonSpeed}`);
+              console.log(`⚙️ Balloon speed updated to ${balloonSpeed} for difficulty: ${this.value}`);
               
               // Update existing balloon speeds if game is running
               if (gameRunning) {
@@ -1328,9 +1375,96 @@
                   }
                 });
               }
+            } else {
+              console.log(`❌ Radio ${this.value} fired change event but not checked`);
             }
           });
         });
+        
+        // Add state verification function
+        window.debugRadioStates = function() {
+          console.log('🔍 Manual radio state check:');
+          difficultyRadios.forEach(radio => {
+            const label = document.querySelector(`.radio-option.${radio.value}`);
+            const hasSelectedClass = label ? label.matches(':has(input:checked)') : false;
+            console.log(`📻 ${radio.value}: input.checked=${radio.checked}, hasSelectedCSS=${hasSelectedClass}`);
+          });
+          console.log(`⚙️ Current balloon speed: ${balloonSpeed}`);
+        };
+        
+        console.log('✅ Difficulty selection setup complete. Type debugRadioStates() to check states manually.');
+        
+        // Optional: Add periodic state checking (uncomment to enable)
+        window.startRadioDebugMonitor = function() {
+          if (window.radioDebugInterval) clearInterval(window.radioDebugInterval);
+          console.log('🔄 Starting radio button monitor (every 5 seconds)...');
+          window.radioDebugInterval = setInterval(() => {
+            const checkedRadios = Array.from(difficultyRadios).filter(r => r.checked);
+            if (checkedRadios.length !== 1) {
+              console.warn(`⚠️ ISSUE: Expected 1 checked radio, found ${checkedRadios.length}:`, checkedRadios.map(r => r.value));
+              debugRadioStates();
+            }
+          }, 5000);
+        };
+        
+        window.stopRadioDebugMonitor = function() {
+          if (window.radioDebugInterval) {
+            clearInterval(window.radioDebugInterval);
+            console.log('⏹️ Radio button monitor stopped');
+          }
+        };
+        
+        // Comprehensive diagnostic function
+        window.debugSkillButtons = function() {
+          console.log('🔧 === SKILL BUTTON DIAGNOSTIC ===');
+          
+          // 1. Check element visibility
+          const splashBox = document.getElementById('splashInfoBox');
+          console.log('📦 SplashInfoBox:');
+          console.log(`   Display: ${splashBox.style.display}`);
+          console.log(`   Computed display: ${getComputedStyle(splashBox).display}`);
+          console.log(`   Visible: ${splashBox.offsetWidth > 0 && splashBox.offsetHeight > 0}`);
+          console.log(`   Position: ${getComputedStyle(splashBox).position}`);
+          console.log(`   Z-index: ${getComputedStyle(splashBox).zIndex}`);
+          
+          // 2. Check each button
+          const buttons = document.querySelectorAll('.radio-option');
+          console.log('🎛️ Button States:');
+          buttons.forEach((btn, i) => {
+            const input = btn.querySelector('input');
+            const rect = btn.getBoundingClientRect();
+            const style = getComputedStyle(btn);
+            console.log(`   Button ${i} (${input.value}):`);
+            console.log(`     Input checked: ${input.checked}`);
+            console.log(`     Visible: ${rect.width > 0 && rect.height > 0}`);
+            console.log(`     Position: (${rect.left}, ${rect.top}) ${rect.width}x${rect.height}`);
+            console.log(`     Pointer events: ${style.pointerEvents}`);
+            console.log(`     Z-index: ${style.zIndex}`);
+          });
+          
+          // 3. Check for overlapping elements
+          console.log('🔍 Checking for overlapping elements...');
+          const buttonArea = buttons[0].parentElement.getBoundingClientRect();
+          const elementsAtPoint = document.elementsFromPoint(
+            buttonArea.left + buttonArea.width/2, 
+            buttonArea.top + buttonArea.height/2
+          );
+          console.log('   Elements at button center point:', elementsAtPoint.map(el => 
+            el.tagName + (el.id ? `#${el.id}` : '') + (el.className ? `.${el.className}` : '')
+          ));
+          
+          // 4. Test click simulation
+          console.log('🖱️ Simulating click on first button...');
+          const firstButton = buttons[0];
+          const clickEvent = new MouseEvent('click', {
+            bubbles: true,
+            cancelable: true,
+            view: window
+          });
+          firstButton.dispatchEvent(clickEvent);
+          
+          console.log('🔧 === END DIAGNOSTIC ===');
+        };
       }
 
       // Balloon class will be implemented next
@@ -1453,10 +1587,43 @@
 
       // Show level start screen
       function showLevelStart() {
+        console.log(`🚀 showLevelStart() called for level ${currentLevel}`);
         waitingForStart = true;
         startButton.textContent = `Launch Level ${currentLevel} ➤`;
         levelStartElement.style.display = "block";
-        document.getElementById("splashInfoBox").style.display = "block"; // Show info box on splash screen
+        
+        const splashInfoBox = document.getElementById("splashInfoBox");
+        splashInfoBox.style.display = "block"; // Show info box on splash screen
+        
+        // Debug element visibility and positioning
+        console.log('👁️ Element visibility check:');
+        console.log(`  splashInfoBox: display=${splashInfoBox.style.display}, visible=${splashInfoBox.offsetWidth > 0}`);
+        console.log(`  splashInfoBox position: bottom=${getComputedStyle(splashInfoBox).bottom}, right=${getComputedStyle(splashInfoBox).right}`);
+        console.log(`  splashInfoBox z-index: ${getComputedStyle(splashInfoBox).zIndex}`);
+        
+        // Check for potentially interfering elements
+        const highZElements = document.querySelectorAll('*');
+        const interferingElements = [];
+        highZElements.forEach(el => {
+          const zIndex = parseInt(getComputedStyle(el).zIndex);
+          const isVisible = el.offsetWidth > 0 && el.offsetHeight > 0;
+          if (zIndex > 30 && isVisible) {
+            interferingElements.push({element: el.tagName + (el.id ? `#${el.id}` : '') + (el.className ? `.${el.className}` : ''), zIndex});
+          }
+        });
+        if (interferingElements.length > 0) {
+          console.warn('⚠️ Elements with z-index > 30 (might interfere):', interferingElements);
+        }
+        
+        // Check skill level buttons specifically
+        const radioButtons = document.querySelectorAll('.radio-option');
+        console.log('🎛️ Skill level button check:');
+        radioButtons.forEach((button, i) => {
+          const rect = button.getBoundingClientRect();
+          const style = getComputedStyle(button);
+          console.log(`  Button ${i}: visible=${rect.width > 0}, position=(${rect.left},${rect.top}), z-index=${style.zIndex}, pointer-events=${style.pointerEvents}`);
+        });
+        
         gameOverElement.style.display = "none";
         // Reset the upper-right status box values to starting values
         if (currentLevel === 1) {
@@ -1470,6 +1637,7 @@
           summaryTime.textContent = "0s";
           summaryLevelBalloons.textContent = "0";
           summaryStreak.textContent = "0";
+          summaryPriorScore.textContent = "0";
           summaryGameScore.textContent = "0";
           summaryGameTime.textContent = "0s";
           summaryGameBalloons.textContent = "0";
@@ -2031,9 +2199,37 @@
       
       // Handle mouse movement for custom cursor
       function handleMouseMove(event) {
+        // Position cursor so its top edge (where triangle tip is) aligns with mouse coordinates
         customCursor.style.left = event.clientX + 'px';
         customCursor.style.top = event.clientY + 'px';
       }
+      
+      // Debug function to analyze cursor positioning
+      window.debugCursorPosition = function() {
+        console.log('🎯 === CURSOR POSITION ANALYSIS ===');
+        
+        const rect = customCursor.getBoundingClientRect();
+        const style = getComputedStyle(customCursor);
+        
+        console.log('📦 Cursor Element:');
+        console.log(`   Position: (${rect.left}, ${rect.top})`);
+        console.log(`   Size: ${rect.width}x${rect.height}`);
+        console.log(`   Transform: ${style.transform}`);
+        console.log(`   Top style: ${customCursor.style.top}`);
+        console.log(`   Left style: ${customCursor.style.left}`);
+        
+        console.log('🔺 Cursor Content:');
+        console.log(`   HTML: ${customCursor.innerHTML}`);
+        
+        // Check for any margins/padding on triangle elements
+        const triangles = customCursor.querySelectorAll('.cursor-pointer, .streak-pointer');
+        triangles.forEach((triangle, i) => {
+          const tStyle = getComputedStyle(triangle);
+          console.log(`   Triangle ${i}: margin=${tStyle.margin}, padding=${tStyle.padding}`);
+        });
+        
+        console.log('🎯 === END ANALYSIS ===');
+      };
       
       // Keep cursor always visible (removed enter/leave handlers that caused flickering)
       
@@ -2258,6 +2454,13 @@
         gameRunning = false;
         waitingForStart = true;
         
+        // Clear balloons and canvas (same as initial game boot)
+        balloons = [];
+        ctx.clearRect(0, 0, cssWidth(), cssHeight());
+        
+        // Reset background to fresh splash background
+        setSplashBackground();
+        
         // Reset slot machine display
         updateSlotMachineDisplay();
         updateCursor();
@@ -2402,7 +2605,9 @@
         summaryLevelBalloons.textContent = currentGameBalloons; // Balloons popped in this level
         summaryStreak.textContent = consecutiveHits;
         
-        // Game stats  
+        // Game stats
+        const priorScore = currentScore - totalLevelPoints;
+        summaryPriorScore.textContent = priorScore.toLocaleString();
         summaryGameScore.textContent = currentScore.toLocaleString();
         summaryGameTime.textContent = Math.floor(totalGameTime / 1000) + "s";
         summaryGameBalloons.textContent = gameBalloonsPopped;
