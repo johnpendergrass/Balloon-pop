@@ -224,6 +224,18 @@
         margin: 4px 0;
         text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
       }
+      
+      .info-text.cheater-active {
+        color: #FF0000;
+        font-weight: bold;
+        animation: pulse 1s infinite;
+      }
+      
+      @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+      }
 
 
       /* Skill level label */
@@ -495,7 +507,7 @@
         font-family: 'Comic Sans MS', 'Arial Black', sans-serif;
         z-index: 30;
         min-width: 300px;
-        max-width: 400px;
+        max-width: 500px;
       }
 
       .leaderboard-header {
@@ -899,7 +911,7 @@
             <span>Buzz</span>
           </label>
         </div>
-        <div class="info-text">ALT-P(op) for cheat</div>
+        <div class="info-text" id="cheatInfoText">ALT-P(op) for cheat</div>
         <div class="info-text">Created by Poppy</div>
       </div>
       <div id="gameOver">
@@ -1002,6 +1014,7 @@
       let levelStartTime = 0;
       let levelEndsAt = 0; // performance.now timestamp
       let waitingForStart = true;
+      let cheaterFlag = false; // Track if cheat has been used
 
       // Background image system
       let availableBackgrounds = [];
@@ -2313,6 +2326,12 @@
         // Process the hit for scoring
         processHit(targetBalloon);
         
+        // Mark as cheater and update the skill box text
+        cheaterFlag = true;
+        const cheatText = document.getElementById('cheatInfoText');
+        cheatText.textContent = 'CHEATER!';
+        cheatText.classList.add('cheater-active');
+        
         console.log('🎮 Cheat activated: Random balloon popped!');
       }
 
@@ -2416,6 +2435,8 @@
           gameOverText.innerHTML = `GAME OVER!`;
           gameOverText.style.color = "#FF6B6B";
           gameOverElement.style.display = "block";
+          // Show skill level box on game over screen
+          document.getElementById("splashInfoBox").style.display = "block";
           // Set a random background for the game over screen
           setRandomBackground();
         }
@@ -2427,6 +2448,12 @@
 
         // Reset to Level 1 (restart entire game)
         currentLevel = 1;
+        
+        // Reset cheater flag and text for new game
+        cheaterFlag = false;
+        const cheatText = document.getElementById('cheatInfoText');
+        cheatText.textContent = 'ALT-P(op) for cheat';
+        cheatText.classList.remove('cheater-active');
         
         // Reset cumulative game variables
         cumulativeTime = 0;
@@ -2509,6 +2536,7 @@
           time: Math.floor(cumulativeTime / 1000),
           streaks: finalStreakList,
           date: new Date().toLocaleDateString(),
+          cheater: cheaterFlag,
         };
 
         let leaderboard = JSON.parse(
@@ -2553,10 +2581,11 @@
                 const score = (game.score || 0).toLocaleString();
                 const streaksText = game.streaks && game.streaks.length > 0 ? 
                   game.streaks.join(", ") : "None";
+                const cheaterText = game.cheater ? ' <span style="color:#FF0000; font-weight:normal;">Cheater!</span>' : '';
                 return `<div class="leaderboard-entry">
                         #${index + 1} - ${score} pts | Level ${game.level} | ${
                   game.balloons
-                } balloons | ${game.time}s<br>
+                } balloons | ${game.time}s${cheaterText}<br>
                         &nbsp;&nbsp;&nbsp;&nbsp;Streaks: ${streaksText} | ${game.date}
                     </div>`;
               }
