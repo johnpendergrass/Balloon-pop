@@ -572,21 +572,43 @@
           inset 0 -2px 4px rgba(0, 0, 0, 0.2);
       }
 
+      /* Rocket flame effect */
+      #startButton::before {
+        content: '🚀';
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 1.2em;
+        animation: rocket-pulse 2s infinite ease-in-out;
+      }
 
+      /* Rocket exhaust trail effect */
+      #startButton::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        right: -10px;
+        width: 20px;
+        height: 8px;
+        background: linear-gradient(90deg, 
+          rgba(255, 165, 0, 0.8) 0%, 
+          rgba(255, 69, 0, 0.6) 50%, 
+          transparent 100%);
+        border-radius: 50%;
+        transform: translateY(-50%);
+        animation: exhaust-flicker 0.5s infinite alternate;
+      }
 
       @keyframes rocket-pulse {
         0%, 100% { transform: translateY(-50%) scale(1); }
         50% { transform: translateY(-50%) scale(1.1); }
       }
 
-      @keyframes rocket-mega-pulse {
-        0%, 100% { transform: scale(1) rotate(-2deg); }
-        25% { transform: scale(1.15) rotate(1deg); }
-        50% { transform: scale(1.25) rotate(-1deg); }
-        75% { transform: scale(1.1) rotate(2deg); }
+      @keyframes exhaust-flicker {
+        0% { opacity: 0.6; width: 20px; }
+        100% { opacity: 1; width: 30px; }
       }
-
-
 
       #startButton:hover {
         background: linear-gradient(145deg, 
@@ -612,23 +634,6 @@
           0 3px 6px rgba(0, 0, 0, 0.3),
           inset 0 2px 4px rgba(0, 0, 0, 0.2);
       }
-
-      /* Enhanced Rocket Overlay */
-      #rocketOverlay {
-        position: absolute;
-        left: -60px; /* Move even further left to clear "Launch" text */
-        top: 50%;
-        transform: translateY(-50%);
-        z-index: 10;
-        pointer-events: none; /* Allow clicks to pass through to button */
-      }
-
-      #rocketIcon {
-        font-size: 3em; /* Much larger than current 1.2em */
-        animation: rocket-mega-pulse 2s infinite ease-in-out;
-        filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
-      }
-
 
 
       #leaderboardList {
@@ -887,9 +892,6 @@
       </div>
       <div id="levelStart">
         <button id="startButton" onclick="startLevel()">Launch Next Level ➤</button>
-        <div id="rocketOverlay">
-          <div id="rocketIcon">🚀</div>
-        </div>
       </div>
       
       <!-- Info box in bottom right corner -->
@@ -1606,9 +1608,6 @@
         const splashInfoBox = document.getElementById("splashInfoBox");
         splashInfoBox.style.display = "block"; // Show info box on splash screen
         
-        // Show rocket overlay with button
-        document.getElementById('rocketOverlay').style.display = 'block';
-        
         // Debug element visibility and positioning
         console.log('👁️ Element visibility check:');
         console.log(`  splashInfoBox: display=${splashInfoBox.style.display}, visible=${splashInfoBox.offsetWidth > 0}`);
@@ -1690,8 +1689,6 @@
         waitingForStart = false;
         levelStartElement.style.display = "none";
         document.getElementById("splashInfoBox").style.display = "none"; // Hide info box during gameplay
-        // Hide rocket overlay during gameplay
-        document.getElementById('rocketOverlay').style.display = 'none';
         hideGameSummary(); // Hide game summary when starting
         hideLeaderboard();
         // Note: UI visibility will be handled by game state

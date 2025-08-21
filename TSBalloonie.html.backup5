@@ -573,6 +573,22 @@
       }
 
 
+      /* Rocket exhaust trail effect */
+      #startButton::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        right: -10px;
+        width: 20px;
+        height: 8px;
+        background: linear-gradient(90deg, 
+          rgba(255, 165, 0, 0.8) 0%, 
+          rgba(255, 69, 0, 0.6) 50%, 
+          transparent 100%);
+        border-radius: 50%;
+        transform: translateY(-50%);
+        animation: exhaust-flicker 0.5s infinite alternate;
+      }
 
       @keyframes rocket-pulse {
         0%, 100% { transform: translateY(-50%) scale(1); }
@@ -587,6 +603,10 @@
       }
 
 
+      @keyframes exhaust-flicker {
+        0% { opacity: 0.6; width: 20px; }
+        100% { opacity: 1; width: 30px; }
+      }
 
       #startButton:hover {
         background: linear-gradient(145deg, 
@@ -616,7 +636,7 @@
       /* Enhanced Rocket Overlay */
       #rocketOverlay {
         position: absolute;
-        left: -60px; /* Move even further left to clear "Launch" text */
+        left: -40px; /* Move further left to clear "Launch" text */
         top: 50%;
         transform: translateY(-50%);
         z-index: 10;
