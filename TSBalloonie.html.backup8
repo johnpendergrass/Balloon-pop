@@ -2379,10 +2379,6 @@
       function endGame(playerWon) {
         gameRunning = false;
         if (animationId) cancelAnimationFrame(animationId);
-        
-        // Clear all balloons from screen
-        balloons = [];
-        ctx.clearRect(0, 0, cssWidth(), cssHeight());
 
         const levelTime = performance.now() - levelStartTime;
         cumulativeTime += levelTime;
@@ -2405,8 +2401,6 @@
             // Auto-advance to next level after 2 seconds
             setTimeout(() => {
               gameOverElement.style.display = "none";
-              // Ensure skill level box is visible during transition
-              document.getElementById("splashInfoBox").style.display = "block";
               showLevelStart();
             }, 2000);
           } else {

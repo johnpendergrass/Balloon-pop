@@ -1271,11 +1271,6 @@
           setRandomBackground();
         }
       }
-      
-      function setFixedSplashBackground() {
-        console.log('Setting fixed splash background: TSBalloonie-background.png');
-        applyBackgroundImage('TSBalloonie-background.png');
-      }
 
       // Level system functions
       function getLevelBalloonCount(level) {
@@ -1534,8 +1529,8 @@
         // Create starfield initially (will be hidden if backgrounds work)
         createStarField();
         
-        // Set fixed splash screen background
-        setFixedSplashBackground();
+        // Set splash screen background
+        setSplashBackground();
         
         // Initialize score display
         initializeScoreDisplay();
@@ -1614,9 +1609,6 @@
         // Show rocket overlay with button
         document.getElementById('rocketOverlay').style.display = 'block';
         
-        // Set fixed background for level start screen
-        setFixedSplashBackground();
-        
         // Debug element visibility and positioning
         console.log('👁️ Element visibility check:');
         console.log(`  splashInfoBox: display=${splashInfoBox.style.display}, visible=${splashInfoBox.offsetWidth > 0}`);
@@ -1670,7 +1662,24 @@
         } 
         updateTopTimer(); // Reset timer display
 
-        // Background will be set when gameplay actually starts (in startLevel)
+        // Select and store background for this entire level
+        if (currentLevel === 1) {
+          // For level 1, use splash background if available, otherwise random
+          if (splashBackground) {
+            currentLevelBackground = splashBackground;
+            console.log('Level 1 using splash background:', splashBackground);
+          } else {
+            currentLevelBackground = selectRandomBackground();
+            console.log('Level 1 using random background:', currentLevelBackground);
+          }
+        } else {
+          // For other levels, select a new random background
+          currentLevelBackground = selectRandomBackground();
+          console.log(`Level ${currentLevel} using background:`, currentLevelBackground);
+        }
+        
+        // Apply the selected background for this level
+        applyBackgroundImage(currentLevelBackground);
 
         // Show leaderboard before starting
         showLeaderboard();
@@ -1694,9 +1703,8 @@
           longestStreak = 0;
         }
 
-        // Set random gameplay background for this level
-        currentLevelBackground = selectRandomBackground();
-        console.log(`Starting level ${currentLevel} with gameplay background:`, currentLevelBackground);
+        // Keep the same background that was set in showLevelStart()
+        console.log(`Starting level ${currentLevel} with consistent background:`, currentLevelBackground);
         applyBackgroundImage(currentLevelBackground);
 
         startGame();
@@ -2379,10 +2387,6 @@
       function endGame(playerWon) {
         gameRunning = false;
         if (animationId) cancelAnimationFrame(animationId);
-        
-        // Clear all balloons from screen
-        balloons = [];
-        ctx.clearRect(0, 0, cssWidth(), cssHeight());
 
         const levelTime = performance.now() - levelStartTime;
         cumulativeTime += levelTime;
@@ -2405,8 +2409,6 @@
             // Auto-advance to next level after 2 seconds
             setTimeout(() => {
               gameOverElement.style.display = "none";
-              // Ensure skill level box is visible during transition
-              document.getElementById("splashInfoBox").style.display = "block";
               showLevelStart();
             }, 2000);
           } else {
@@ -2422,8 +2424,8 @@
             )}s`;
             gameOverText.style.color = "#FFD700";
             gameOverElement.style.display = "block";
-            // Set fixed background for the victory screen
-            setFixedSplashBackground();
+            // Set a random background for the victory screen
+            setRandomBackground();
           }
         } else {
           // Game failed! Show final level summary
@@ -2438,8 +2440,8 @@
           gameOverElement.style.display = "block";
           // Show skill level box on game over screen
           document.getElementById("splashInfoBox").style.display = "block";
-          // Set fixed background for the game over screen
-          setFixedSplashBackground();
+          // Set a random background for the game over screen
+          setRandomBackground();
         }
       }
 
@@ -2486,8 +2488,8 @@
         balloons = [];
         ctx.clearRect(0, 0, cssWidth(), cssHeight());
         
-        // Reset background to fixed splash background
-        setFixedSplashBackground();
+        // Reset background to fresh splash background
+        setSplashBackground();
         
         // Reset slot machine display
         updateSlotMachineDisplay();
@@ -2615,9 +2617,6 @@
 
       // Show game summary with comprehensive statistics
       function showGameSummary(levelTime, isGameOver = false) {
-        // Set fixed background for level completion summary
-        setFixedSplashBackground();
-        
         const totalLevelPoints = levelBalloonPoints + levelStreakPoints + levelSequencePoints;
         const totalGameTime = performance.now() - gameStartTime;
         
