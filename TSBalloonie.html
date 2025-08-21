@@ -143,20 +143,6 @@
         text-align: center;
       }
 
-      #gameUI {
-        position: absolute;
-        top: 20px;
-        left: 20px;
-        color: white;
-        font-size: clamp(18px, 3vw, 32px);
-        font-weight: bold;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-        z-index: 10;
-        background: rgba(0, 0, 0, 0.3);
-        padding: 10px 15px;
-        border-radius: 10px;
-        backdrop-filter: blur(5px);
-      }
 
       #gameOver {
         position: absolute;
@@ -401,11 +387,16 @@
         color: #2c5282;
         font-size: 22px;
         font-weight: bold;
-        text-align: center;
         margin-bottom: 16px;
         text-shadow: 0 2px 4px rgba(255, 255, 255, 0.8);
         border-bottom: 2px solid #999;
         padding-bottom: 8px;
+      }
+
+      .summary-header-line {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
       }
 
       .summary-content {
@@ -428,6 +419,15 @@
       }
 
       .summary-total {
+        margin: 12px 0;
+        font-size: 18px;
+        font-weight: bold;
+        color: #d63447;
+        text-align: center;
+        text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+      }
+
+      .summary-game-score {
         margin: 12px 0;
         font-size: 18px;
         font-weight: bold;
@@ -879,14 +879,6 @@
       <div id="customCursor">
         <div class="cursor-pointer"></div>
       </div>
-      <div id="gameUI">
-        <div>Level: <span id="levelDisplay">1</span></div>
-        <div>Score: <span id="scoreDisplay">0</span></div>
-        <div>Streak: <span id="streakDisplay">0</span></div>
-        <div>Time: <span id="timer">20</span></div>
-        <div>Total Time: <span id="cumulativeTimer">0</span>s</div>
-        <div>Balloons: <span id="balloonCount">0</span></div>
-      </div>
       <div id="levelStart">
         <button id="startButton" onclick="startLevel()">Launch Next Level ➤</button>
       </div>
@@ -918,7 +910,12 @@
 
       <!-- Game Summary Box -->
       <div id="gameSummary" style="display: none;">
-        <div class="summary-header">LEVEL <span id="summaryLevelNumber">1</span> CLEARED!</div>
+        <div class="summary-header">
+          <div class="summary-header-line">
+            <span id="summaryHeaderText">LEVEL CLEARED!</span>
+            <span id="summaryLevelNumber">1</span>
+          </div>
+        </div>
         <div class="summary-content">
           <div class="section-label">Level Stats:</div>
           <div class="summary-line-indent">Balloon Points: <span id="summaryBalloonPoints">0</span></div>
@@ -928,14 +925,14 @@
           <div class="summary-total">Total Level Score: <span id="summaryTotalPoints">0</span></div>
           
           <div class="summary-spacer"></div>
-          <div class="summary-line">Level Time: <span id="summaryTime">0</span>s</div>
+          <div class="summary-line">Level Time: <span id="summaryTime">0s</span></div>
           <div class="summary-line">Level Balloons popped: <span id="summaryLevelBalloons">0</span></div>
           <div class="summary-line">Current popping streak: <span id="summaryStreak">0</span></div>
           
           <div class="summary-major-divider"></div>
           
-          <div class="summary-line">Game Score: <span id="summaryGameScore">0</span></div>
-          <div class="summary-line">Game Time: <span id="summaryGameTime">0</span>s</div>
+          <div class="summary-game-score">Game Score: <span id="summaryGameScore">0</span></div>
+          <div class="summary-line">Game Time: <span id="summaryGameTime">0s</span></div>
           <div class="summary-line">Game Balloons popped: <span id="summaryGameBalloons">0</span></div>
           <div class="summary-line">Game longest popping streak: <span id="summaryLongestStreak">0</span></div>
         </div>
@@ -963,16 +960,13 @@
       // Game variables
       const canvas = document.getElementById("gameCanvas");
       const ctx = canvas.getContext("2d");
-      const timerElement = document.getElementById("timer");
-      const balloonCountElement = document.getElementById("balloonCount");
-      const scoreDisplayElement = document.getElementById("scoreDisplay");
-      const streakDisplayElement = document.getElementById("streakDisplay");
       const topTimerElement = document.getElementById("topTimer");
       const topLevelDisplay = document.getElementById("topLevelDisplay");
       const levelNumberElement = document.querySelector(".level-number");
       
       // Game summary elements
       const gameSummaryElement = document.getElementById("gameSummary");
+      const summaryHeaderText = document.getElementById("summaryHeaderText");
       const summaryLevelNumber = document.getElementById("summaryLevelNumber");
       const summaryBalloonPoints = document.getElementById("summaryBalloonPoints");
       const summaryStreakPoints = document.getElementById("summaryStreakPoints");
@@ -987,8 +981,6 @@
       const summaryLongestStreak = document.getElementById("summaryLongestStreak");
       const gameOverElement = document.getElementById("gameOver");
       const gameOverText = document.getElementById("gameOverText");
-      const levelDisplayElement = document.getElementById("levelDisplay");
-      const cumulativeTimerElement = document.getElementById("cumulativeTimer");
       const levelStartElement = document.getElementById("levelStart");
       const startButton = document.getElementById("startButton");
       
@@ -1017,6 +1009,7 @@
       // Sequence bonus system
       let sequenceProgress = 0; // Next number in sequence we're looking for (0 means sequence not started)
       let maxSequenceNumber = 0; // Highest number assigned to balloons in current level
+      let sequenceBroken = false; // Flag to track if sequence has been permanently broken
 
       // Level scoring breakdown tracking
       let levelBalloonPoints = 0; // Points from just popping balloons
@@ -1465,8 +1458,27 @@
         levelStartElement.style.display = "block";
         document.getElementById("splashInfoBox").style.display = "block"; // Show info box on splash screen
         gameOverElement.style.display = "none";
+        // Reset the upper-right status box values to starting values
+        if (currentLevel === 1) {
+          // Reset to initial game state values for Level 1
+          summaryHeaderText.textContent = "LEVEL";
+          summaryLevelNumber.textContent = "1";
+          summaryBalloonPoints.textContent = "0";
+          summaryStreakPoints.textContent = "0";
+          summarySequencePoints.textContent = "0";
+          summaryTotalPoints.textContent = "0";
+          summaryTime.textContent = "0s";
+          summaryLevelBalloons.textContent = "0";
+          summaryStreak.textContent = "0";
+          summaryGameScore.textContent = "0";
+          summaryGameTime.textContent = "0s";
+          summaryGameBalloons.textContent = "0";
+          summaryLongestStreak.textContent = "0";
+          
+          // Show the reset status box
+          gameSummaryElement.style.display = "block";
+        } 
         updateTopTimer(); // Reset timer display
-        showGameUI(); // Show UI during splash screen
 
         // Select and store background for this entire level
         if (currentLevel === 1) {
@@ -1538,9 +1550,7 @@
         balloons = [];
         gameOverElement.style.display = "none";
 
-        // Update UI displays
-        levelDisplayElement.textContent = currentLevel;
-        cumulativeTimerElement.textContent = Math.floor(cumulativeTime / 1000);
+        // Update UI displays - info now shown in upper-right status box
         updateScoreDisplay();
         updateStreakDisplay();
         updateSlotMachineDisplay();
@@ -1566,6 +1576,7 @@
         // Reset sequence tracking for new level
         sequenceProgress = 0;
         maxSequenceNumber = 0;
+        sequenceBroken = false;
         
         // Reset level scoring breakdown tracking
         levelBalloonPoints = 0;
@@ -1634,12 +1645,10 @@
         // Update timers
         updateTopTimer();
         const remaining = Math.max(0, Math.ceil((levelEndsAt - now) / 1000));
-        timerElement.textContent = remaining;
+        // Timer info shown in top timer and upper-right status box
 
         const levelElapsedMs = now - levelStartTime;
-        cumulativeTimerElement.textContent = Math.floor(
-          (cumulativeTime + levelElapsedMs) / 1000
-        );
+        // Cumulative timer info shown in upper-right status box
 
         // End on timeout
         if (remaining === 0) { endGame(false); return; }
@@ -1892,20 +1901,36 @@
           console.log(`Streak bonus! ${consecutiveHits} consecutive hits = +${streakBonus} points`);
         }
         
-        // Check for sequence bonus (if balloon has a number)
-        if (hitBalloon && hitBalloon.number !== null) {
+        // Check for sequence bonus (if balloon has a number and sequence isn't broken)
+        if (hitBalloon && hitBalloon.number !== null && !sequenceBroken) {
           const expectedNumber = sequenceProgress + 1;
           
+          console.log(`🔢 Sequence check: Hit #${hitBalloon.number}, Expected #${expectedNumber}, Progress: ${sequenceProgress}`);
+          
           if (hitBalloon.number === expectedNumber) {
-            // Correct sequence! Award bonus points
+            // Correct sequence! Update progress
             sequenceProgress++;
-            sequenceBonus = calculateSequenceBonus(currentLevel);
-            pointsEarned += sequenceBonus;
-            levelSequencePoints += sequenceBonus; // Track sequence points
-            console.log(`Sequence bonus! Hit #${hitBalloon.number} in order = +${sequenceBonus} points`);
+            
+            // Only award bonus points for balloon #2 and above (not #1)
+            if (hitBalloon.number >= 2) {
+              sequenceBonus = calculateSequenceBonus(currentLevel);
+              pointsEarned += sequenceBonus;
+              levelSequencePoints += sequenceBonus; // Track sequence points
+              console.log(`✅ Sequence bonus! Hit #${hitBalloon.number} in order = +${sequenceBonus} points (Total sequence points: ${levelSequencePoints})`);
+            } else {
+              console.log(`✅ Sequence started! Hit #1 - no bonus points yet, but sequence is active`);
+            }
           } else {
-            console.log(`Sequence broken! Hit #${hitBalloon.number} but expected #${expectedNumber}`);
+            // Sequence broken permanently!
+            sequenceBroken = true;
+            if (sequenceProgress === 0) {
+              console.log(`💥 Sequence PERMANENTLY broken! Started with #${hitBalloon.number} instead of #1 - no sequence bonuses this level`);
+            } else {
+              console.log(`💥 Sequence PERMANENTLY broken! Hit #${hitBalloon.number} but expected #${expectedNumber} - no more sequence bonuses this level`);
+            }
           }
+        } else if (hitBalloon && hitBalloon.number !== null && sequenceBroken) {
+          console.log(`🚫 Sequence already broken - no bonus for hitting #${hitBalloon.number}`);
         }
         
         // Add to total score
@@ -1943,20 +1968,11 @@
       
       // Display update functions
       function updateScoreDisplay() {
-        scoreDisplayElement.textContent = currentScore.toLocaleString();
+        // Score info shown in slot machine display and upper-right status box
       }
       
       function updateStreakDisplay() {
-        streakDisplayElement.textContent = consecutiveHits;
-        
-        // Visual indicator for streak bonus
-        if (consecutiveHits >= 5) {
-          streakDisplayElement.style.color = '#FFD700'; // Gold color for bonus
-          streakDisplayElement.style.fontWeight = 'bold';
-        } else {
-          streakDisplayElement.style.color = 'white';
-          streakDisplayElement.style.fontWeight = 'normal';
-        }
+        // Streak info shown in upper-right status box
       }
       
       // ============================================================================
@@ -2147,17 +2163,16 @@
       // Update balloon count display
       function updateBalloonCount() {
         const activeBalloons = balloons.filter((b) => !b.popping).length;
-        balloonCountElement.textContent = activeBalloons;
+        // Balloon count info shown in upper-right status box
       }
 
       function endGame(playerWon) {
         gameRunning = false;
         if (animationId) cancelAnimationFrame(animationId);
-        showGameUI();
 
         const levelTime = performance.now() - levelStartTime;
         cumulativeTime += levelTime;
-        cumulativeTimerElement.textContent = Math.floor(cumulativeTime / 1000);
+        // Cumulative timer info shown in upper-right status box
 
         if (playerWon) {
           if (currentLevel < 10) {
@@ -2180,7 +2195,11 @@
             }, 2000);
           } else {
             // Game completed! Show final level summary
-            showGameSummary(levelTime);
+            showGameSummary(levelTime, true);
+            
+            // Save game to leaderboard and show updated leaderboard
+            saveGameToLeaderboard();
+            showLeaderboard();
             
             gameOverText.innerHTML = `🎉 Game Complete! 🎉<br>All 10 levels finished!<br>Total Time: ${Math.floor(
               cumulativeTime / 1000
@@ -2191,7 +2210,14 @@
             setRandomBackground();
           }
         } else {
-          gameOverText.innerHTML = `Level ${currentLevel} Failed!<br>Time ran out!`;
+          // Game failed! Show final level summary
+          showGameSummary(levelTime, true);
+          
+          // Save game to leaderboard and show updated leaderboard
+          saveGameToLeaderboard();
+          showLeaderboard();
+          
+          gameOverText.innerHTML = `GAME OVER!`;
           gameOverText.style.color = "#FF6B6B";
           gameOverElement.style.display = "block";
           // Set a random background for the game over screen
@@ -2201,14 +2227,16 @@
 
       // Reset game to level 1
       function resetGame() {
-        // Save current game to leaderboard before resetting
-        if (currentLevel > 1 || currentGameBalloons > 0) {
-          saveGameToLeaderboard();
-        }
+        // Game scores are already saved to leaderboard in endGame()
 
+        // Reset to Level 1 (restart entire game)
         currentLevel = 1;
+        
+        // Reset cumulative game variables
         cumulativeTime = 0;
         currentGameBalloons = 0;
+        gameBalloonsPopped = 0;
+        longestStreak = 0;
         
         // Reset scoring variables
         currentScore = 0;
@@ -2216,12 +2244,26 @@
         consecutiveHits = 0;
         currentStreakList = [];
         
+        // Reset level scoring breakdown tracking
+        levelBalloonPoints = 0;
+        levelStreakPoints = 0;
+        levelSequencePoints = 0;
+        
+        // Reset sequence bonus system
+        sequenceProgress = 0;
+        maxSequenceNumber = 0;
+        sequenceBroken = false;
+        
+        // Reset game state flags
+        gameRunning = false;
+        waitingForStart = true;
+        
         // Reset slot machine display
         updateSlotMachineDisplay();
         updateCursor();
         updateTopTimer();
         
-        cumulativeTimerElement.textContent = "0";
+        // Start the level (keeping the same level number)
         showLevelStart();
       }
 
@@ -2339,11 +2381,16 @@
       }
 
       // Show game summary with comprehensive statistics
-      function showGameSummary(levelTime) {
+      function showGameSummary(levelTime, isGameOver = false) {
         const totalLevelPoints = levelBalloonPoints + levelStreakPoints + levelSequencePoints;
         const totalGameTime = performance.now() - gameStartTime;
         
         // Populate the comprehensive summary box
+        if (isGameOver) {
+          summaryHeaderText.textContent = "FINAL STATS";
+        } else {
+          summaryHeaderText.textContent = "LEVEL CLEARED!";
+        }
         summaryLevelNumber.textContent = currentLevel; // Current level that was just completed
         summaryBalloonPoints.textContent = levelBalloonPoints.toLocaleString();
         summaryStreakPoints.textContent = levelStreakPoints.toLocaleString();
@@ -2351,19 +2398,18 @@
         summaryTotalPoints.textContent = totalLevelPoints.toLocaleString();
         
         // Level stats
-        summaryTime.textContent = Math.floor(levelTime / 1000);
+        summaryTime.textContent = Math.floor(levelTime / 1000) + "s";
         summaryLevelBalloons.textContent = currentGameBalloons; // Balloons popped in this level
         summaryStreak.textContent = consecutiveHits;
         
         // Game stats  
         summaryGameScore.textContent = currentScore.toLocaleString();
-        summaryGameTime.textContent = Math.floor(totalGameTime / 1000);
+        summaryGameTime.textContent = Math.floor(totalGameTime / 1000) + "s";
         summaryGameBalloons.textContent = gameBalloonsPopped;
         summaryLongestStreak.textContent = longestStreak;
         
         // Show the summary box and hide the game UI (stays visible until start button is clicked)
         gameSummaryElement.style.display = "block";
-        hideGameUI(); // Hide the top-left UI elements
       }
 
       function hideGameSummary() {
@@ -2374,14 +2420,6 @@
         document.getElementById("leaderboardBox").style.display = "none";
       }
 
-      // UI visibility functions
-      function showGameUI() {
-        document.getElementById("gameUI").style.display = "block";
-      }
-
-      function hideGameUI() {
-        document.getElementById("gameUI").style.display = "none";
-      }
 
       // Debug function to manually test background
       window.debugBackground = function(imageName) {

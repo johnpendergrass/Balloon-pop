@@ -125,6 +125,12 @@ HIGH PRIORITY UI IMPROVEMENTS:
       are not clicking properly.  Is the balloon speed even being set?
       Increase the depth of the the selected button to make it more obvious.
 
+8. **Change scoring to add extra points**
+   -- (how many??) for completing
+      the level. Subtract points if the balloon popping sequence 
+      (of balloon numbers) is not completed entirely and correctly.
+      In that case -0- points??
+
 
 === TECHNICAL ARCHITECTURE NOTES ===
 
