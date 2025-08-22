@@ -237,106 +237,6 @@
         100% { opacity: 1; }
       }
 
-      /* Sound Mode Box - Similar to Skill Level Box */
-      #soundModeBox {
-        position: fixed;
-        bottom: 25px;
-        right: calc(2% + 88px + 270px + 20px); /* Skill box width + gap */
-        background: linear-gradient(145deg, #e8e8e8 0%, #c0c0c0 25%, #d4d4d4 50%, #a8a8a8 75%, #bcbcbc 100%);
-        border: 3px solid #666;
-        border-radius: 15px;
-        padding: 16px 20px;
-        box-shadow: 
-          inset 0 4px 8px rgba(255, 255, 255, 0.6),
-          inset 0 -2px 4px rgba(0, 0, 0, 0.3),
-          0 4px 12px rgba(0, 0, 0, 0.4),
-          0 2px 6px rgba(0, 0, 0, 0.2);
-        text-align: center;
-        font-family: 'Comic Sans MS', 'Arial Black', sans-serif;
-        z-index: 30;
-        min-width: 200px;
-        max-width: 250px;
-        display: none; /* Hidden by default */
-      }
-
-      .sound-mode-label {
-        color: #2c5282;
-        font-family: 'Comic Sans MS', 'Arial Black', sans-serif;
-        font-size: 11px;
-        font-weight: bold;
-        margin-bottom: 6px;
-        text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
-      }
-
-      /* Toggle Switch Container */
-      .toggle-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 12px;
-      }
-
-      /* Toggle Track (Switch Plate) */
-      .toggle-track {
-        width: 120px;
-        height: 40px;
-        background: linear-gradient(145deg, #f0f0f0, #d0d0d0);
-        border: 2px solid #999;
-        border-radius: 20px;
-        position: relative;
-        cursor: pointer;
-        box-shadow: 
-          inset 0 2px 4px rgba(0, 0, 0, 0.3),
-          inset 0 -1px 2px rgba(255, 255, 255, 0.3);
-      }
-
-      /* Toggle Slider (Switch Actuator) */
-      .toggle-slider {
-        width: 50px;
-        height: 32px;
-        background: linear-gradient(145deg, #ffffff, #e0e0e0);
-        border: 1px solid #666;
-        border-radius: 16px;
-        position: absolute;
-        top: 3px;
-        transition: left 0.3s ease;
-        box-shadow: 
-          0 2px 4px rgba(0, 0, 0, 0.3),
-          0 1px 2px rgba(0, 0, 0, 0.2);
-      }
-
-      .toggle-slider.quiet { 
-        left: 4px; 
-      }
-
-      .toggle-slider.noisy { 
-        left: 66px; 
-      }
-
-      .toggle-slider.jiggle {
-        animation: jiggle 0.1s ease-in-out 5;
-      }
-
-      /* Toggle Labels */
-      .toggle-labels {
-        display: flex;
-        justify-content: space-between;
-        width: 120px;
-        font-size: 10px;
-        font-weight: bold;
-        color: #2c5282;
-        text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
-      }
-
-      /* Jiggle Animation */
-      @keyframes jiggle {
-        0% { transform: translateX(0); }
-        25% { transform: translateX(-3px); }
-        50% { transform: translateX(3px); }
-        75% { transform: translateX(-2px); }
-        100% { transform: translateX(0); }
-      }
 
       /* Skill level label */
       .skill-level-label {
@@ -1104,20 +1004,6 @@
         </div>
       </div>
       
-      <!-- Sound mode box in bottom right area -->
-      <div id="soundModeBox">
-        <div class="sound-mode-label">Game Sound</div>
-        <div class="toggle-container">
-          <div class="toggle-track">
-            <div class="toggle-slider quiet" id="soundToggleSlider"></div>
-          </div>
-          <div class="toggle-labels">
-            <span class="quiet-label">OFF</span>
-            <span class="noisy-label">ON</span>
-          </div>
-        </div>
-      </div>
-      
       <!-- Info box in bottom right corner -->
       <div id="splashInfoBox">
         <div class="skill-level-label">Skill level</div>
@@ -1737,98 +1623,6 @@
         };
       }
 
-      // Sound mode toggle functionality
-      let soundMode = 'quiet'; // Default state
-      let preloadedSounds = {}; // Store preloaded audio objects
-
-      function preloadBuzzSounds() {
-        console.log('🔊 Preloading buzz sounds...');
-        const soundFiles = ['Buzz-01.mp3', 'Buzz-02.mp3', 'Buzz-03.mp3'];
-        
-        soundFiles.forEach(filename => {
-          try {
-            const audio = new Audio(filename);
-            audio.volume = 0.7; // Set volume during preload
-            audio.preload = 'auto'; // Ensure audio is preloaded
-            preloadedSounds[filename] = audio;
-            console.log(`🔊 Preloaded: ${filename}`);
-          } catch (e) {
-            console.warn(`🔇 Failed to preload ${filename}:`, e);
-          }
-        });
-        
-        console.log('✅ Buzz sound preloading complete');
-      }
-
-      function setupSoundToggle() {
-        console.log('🔊 Setting up sound toggle...');
-        
-        // Preload sounds first
-        preloadBuzzSounds();
-        
-        const toggleTrack = document.querySelector('.toggle-track');
-        const toggleSlider = document.getElementById('soundToggleSlider');
-        
-        if (!toggleTrack || !toggleSlider) {
-          console.warn('Sound toggle elements not found');
-          return;
-        }
-        
-        toggleTrack.addEventListener('click', function() {
-          if (soundMode === 'quiet') {
-            // Switch to NOISY
-            soundMode = 'noisy';
-            toggleSlider.className = 'toggle-slider noisy';
-            console.log('🔊 Sound toggle switched to ON');
-            
-            // Play random buzz sound
-            playBuzzSound();
-            
-            // After 1 second, jiggle and return to quiet
-            setTimeout(() => {
-              toggleSlider.classList.add('jiggle');
-              setTimeout(() => {
-                soundMode = 'quiet';
-                toggleSlider.className = 'toggle-slider quiet';
-                console.log('🔇 Sound toggle returned to OFF');
-              }, 500); // Jiggle duration
-            }, 1000);
-            
-          } else {
-            // Already switching back, do nothing during transition
-            console.log('🔊 Toggle busy - ignoring click during transition');
-          }
-        });
-        
-        console.log('✅ Sound toggle setup complete');
-      }
-
-      function playBuzzSound() {
-        const soundFiles = ['Buzz-01.mp3', 'Buzz-02.mp3', 'Buzz-03.mp3']; // Add Buzz-03
-        const randomSound = soundFiles[Math.floor(Math.random() * soundFiles.length)];
-        
-        try {
-          // Use preloaded audio if available, otherwise create new
-          const audio = preloadedSounds[randomSound] || new Audio(randomSound);
-          
-          // Reset to beginning in case it was played before
-          audio.currentTime = 0;
-          
-          // Set volume if using fallback audio
-          if (!preloadedSounds[randomSound]) {
-            audio.volume = 0.7;
-          }
-          
-          audio.play().then(() => {
-            console.log(`🔊 Playing sound: ${randomSound}`);
-          }).catch(e => {
-            console.log('🔇 Sound play failed:', e);
-          });
-        } catch (e) {
-          console.log('🔇 Sound creation failed:', e);
-        }
-      }
-
       // Balloon class will be implemented next
       class Balloon {
         constructor(x, y, radius, color, number = null) {
@@ -1869,7 +1663,6 @@
       async function init() {
         resizeCanvas();
         setupDifficultySelection();
-        setupSoundToggle();
         loadStatistics();
         
         // Apply debug parameters from URL if present
@@ -1958,9 +1751,6 @@
         const splashInfoBox = document.getElementById("splashInfoBox");
         splashInfoBox.style.display = "block"; // Show info box on splash screen
         
-        // Show sound mode box on splash screen
-        document.getElementById("soundModeBox").style.display = "block";
-        
         // Show splash logo
         document.getElementById("splashLogo").style.display = "block";
         
@@ -2034,8 +1824,6 @@
         waitingForStart = false;
         levelStartElement.style.display = "none";
         document.getElementById("splashInfoBox").style.display = "none"; // Hide info box during gameplay
-        // Hide sound mode box during gameplay
-        document.getElementById("soundModeBox").style.display = "none";
         // Hide splash logo during gameplay
         document.getElementById("splashLogo").style.display = "none";
         // Hide rocket overlay during gameplay
@@ -2842,8 +2630,6 @@
               gameOverElement.style.display = "none";
               // Ensure skill level box is visible during transition
               document.getElementById("splashInfoBox").style.display = "block";
-              // Show sound mode box during transition
-              document.getElementById("soundModeBox").style.display = "block";
               showLevelStart();
             }, 2000);
           } else {
@@ -2879,8 +2665,6 @@
           gameOverElement.style.display = "block";
           // Show skill level box on game over screen
           document.getElementById("splashInfoBox").style.display = "block";
-          // Show sound mode box on game over screen
-          document.getElementById("soundModeBox").style.display = "block";
           // Show splash logo on game over screen
           document.getElementById("splashLogo").style.display = "block";
           // Set fixed background for the game over screen

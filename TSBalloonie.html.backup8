@@ -1106,14 +1106,14 @@
       
       <!-- Sound mode box in bottom right area -->
       <div id="soundModeBox">
-        <div class="sound-mode-label">Game Sound</div>
+        <div class="sound-mode-label">Sound Mode</div>
         <div class="toggle-container">
           <div class="toggle-track">
             <div class="toggle-slider quiet" id="soundToggleSlider"></div>
           </div>
           <div class="toggle-labels">
-            <span class="quiet-label">OFF</span>
-            <span class="noisy-label">ON</span>
+            <span class="quiet-label">QUIET</span>
+            <span class="noisy-label">NOISY</span>
           </div>
         </div>
       </div>
@@ -1739,33 +1739,9 @@
 
       // Sound mode toggle functionality
       let soundMode = 'quiet'; // Default state
-      let preloadedSounds = {}; // Store preloaded audio objects
-
-      function preloadBuzzSounds() {
-        console.log('🔊 Preloading buzz sounds...');
-        const soundFiles = ['Buzz-01.mp3', 'Buzz-02.mp3', 'Buzz-03.mp3'];
-        
-        soundFiles.forEach(filename => {
-          try {
-            const audio = new Audio(filename);
-            audio.volume = 0.7; // Set volume during preload
-            audio.preload = 'auto'; // Ensure audio is preloaded
-            preloadedSounds[filename] = audio;
-            console.log(`🔊 Preloaded: ${filename}`);
-          } catch (e) {
-            console.warn(`🔇 Failed to preload ${filename}:`, e);
-          }
-        });
-        
-        console.log('✅ Buzz sound preloading complete');
-      }
 
       function setupSoundToggle() {
         console.log('🔊 Setting up sound toggle...');
-        
-        // Preload sounds first
-        preloadBuzzSounds();
-        
         const toggleTrack = document.querySelector('.toggle-track');
         const toggleSlider = document.getElementById('soundToggleSlider');
         
@@ -1779,7 +1755,7 @@
             // Switch to NOISY
             soundMode = 'noisy';
             toggleSlider.className = 'toggle-slider noisy';
-            console.log('🔊 Sound toggle switched to ON');
+            console.log('🔊 Sound toggle switched to NOISY');
             
             // Play random buzz sound
             playBuzzSound();
@@ -1790,7 +1766,7 @@
               setTimeout(() => {
                 soundMode = 'quiet';
                 toggleSlider.className = 'toggle-slider quiet';
-                console.log('🔇 Sound toggle returned to OFF');
+                console.log('🔇 Sound toggle returned to QUIET');
               }, 500); // Jiggle duration
             }, 1000);
             
@@ -1804,21 +1780,12 @@
       }
 
       function playBuzzSound() {
-        const soundFiles = ['Buzz-01.mp3', 'Buzz-02.mp3', 'Buzz-03.mp3']; // Add Buzz-03
-        const randomSound = soundFiles[Math.floor(Math.random() * soundFiles.length)];
+        const sounds = ['Buzz-01.mp3', 'Buzz-02.mp3'];
+        const randomSound = sounds[Math.floor(Math.random() * sounds.length)];
         
         try {
-          // Use preloaded audio if available, otherwise create new
-          const audio = preloadedSounds[randomSound] || new Audio(randomSound);
-          
-          // Reset to beginning in case it was played before
-          audio.currentTime = 0;
-          
-          // Set volume if using fallback audio
-          if (!preloadedSounds[randomSound]) {
-            audio.volume = 0.7;
-          }
-          
+          const audio = new Audio(randomSound);
+          audio.volume = 0.7; // Loud but not overwhelming
           audio.play().then(() => {
             console.log(`🔊 Playing sound: ${randomSound}`);
           }).catch(e => {
