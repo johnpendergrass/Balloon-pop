@@ -145,7 +145,7 @@ Extensive logging added for troubleshooting:
 
 USER'S SPECIFIED ROADMAP FOR NEXT SESSION:
 
-1. **SCORING SYSTEM REVISION** - HIGH PRIORITY
+SKIP 1. **SCORING SYSTEM REVISION** - HIGH PRIORITY
    Current Issue: Scoring may be unbalanced between balloon points, streak bonuses, and sequence bonuses
    Goal: Rebalance scoring to make all three components more evenly weighted
    Technical: Review calculateSequenceBonus(), streak multipliers, and base balloon points
@@ -176,7 +176,7 @@ DONE 5. **Enhance the Launch Level ... Button**
    Make the Rocketship pulse much larger!  It is ok if it even goes outside the button borders at times.
    It should be obvious.
 
-6. ** Add Upper Left Game Title and Info box**
+DONE 6. ** Add Upper Left Game Title and Info box**
    Should include Game Title prominent "TS BALLOONIE!"
    Game title should be in a font very similar to the TOY STORY movie font
      as follows:  The 'TS' should be have a blue border with a bright yellow body,
