@@ -935,33 +935,55 @@
         display: none;
       }
 
-      /* Victory Celebration Keyframe Animations - Transform Only */
-      @keyframes logo-to-center-transform {
+      /* Victory Celebration Keyframe Animations */
+      @keyframes logo-to-center {
         0% {
+          left: 2%;
+          top: 11%;
           transform: translate(0, 0) scale(1);
         }
         100% {
-          /* Move from 2% left to 50% centered: 48% right + center the 33.3vw width */
-          /* Move from 11% top to 50% centered: 39% down + center vertically */
-          transform: translate(calc(48vw - 16.65vw), 39vh) scale(2);
+          left: 50%;
+          top: 50%;
+          transform: translate(-50%, -50%) scale(2);
         }
       }
 
-      @keyframes logo-spin-smooth {
+      @keyframes logo-spin-accelerate {
         0% {
-          transform: translate(calc(48vw - 16.65vw), 39vh) scale(2) rotate(0deg);
+          transform: translate(-50%, -50%) scale(2) rotate(0deg);
+          animation-timing-function: ease-in;
+        }
+        20% {
+          transform: translate(-50%, -50%) scale(2) rotate(72deg);
+          animation-timing-function: ease-in;
+        }
+        40% {
+          transform: translate(-50%, -50%) scale(2) rotate(216deg);
+          animation-timing-function: ease-in;
+        }
+        60% {
+          transform: translate(-50%, -50%) scale(2) rotate(432deg);
+          animation-timing-function: ease-in;
+        }
+        80% {
+          transform: translate(-50%, -50%) scale(2) rotate(720deg);
+          animation-timing-function: ease-in;
         }
         100% {
-          /* 5 full rotations = 1800 degrees */
-          transform: translate(calc(48vw - 16.65vw), 39vh) scale(2) rotate(1800deg);
+          transform: translate(-50%, -50%) scale(2) rotate(1080deg);
         }
       }
 
-      @keyframes logo-return-home-transform {
+      @keyframes logo-return-home {
         0% {
-          transform: translate(calc(48vw - 16.65vw), 39vh) scale(2);
+          left: 50%;
+          top: 50%;
+          transform: translate(-50%, -50%) scale(2);
         }
         100% {
+          left: 2%;
+          top: 11%;
           transform: translate(0, 0) scale(1);
         }
       }
@@ -2551,16 +2573,16 @@
         setTimeout(() => {
           // Phase 1: Bring to foreground and slowly ease to center
           logo.style.zIndex = "9999"; // Highest z-index (foreground)
-          logo.style.animation = "logo-to-center-transform 2.5s ease-in forwards"; // Slow ease-in
+          logo.style.animation = "logo-to-center 2.5s ease-in forwards"; // Slow ease-in
           
-          // Phase 2: Spin 5 times with smooth acceleration (after 2.5s)
+          // Phase 2: Spin 5 times with acceleration (after 2.5s)
           setTimeout(() => {
-            logo.style.animation = "logo-spin-smooth 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards";
+            logo.style.animation = "logo-spin-accelerate 3s ease-in forwards";
           }, 2500);
           
           // Phase 3: Wait 1s, then return home (after 6.5s total)
           setTimeout(() => {
-            logo.style.animation = "logo-return-home-transform 2s ease-in-out forwards";
+            logo.style.animation = "logo-return-home 2s ease-in-out forwards";
           }, 6500);
           
           // Phase 4: Reset z-index to original (after 8.5s total)
