@@ -1163,24 +1163,24 @@
         }
         100% {
           /* Move from 2% left to 50% centered: 48% right + center the 33.3vw width */
-          /* Move from 11% top to 50% centered: 25% down + center vertically */
-          transform: translate(calc(48vw - 16.65vw), 25vh) scale(2);
+          /* Move from 11% top to 50% centered: 39% down + center vertically */
+          transform: translate(calc(48vw - 16.65vw), 39vh) scale(2);
         }
       }
 
       @keyframes logo-spin-smooth {
         0% {
-          transform: translate(calc(48vw - 16.65vw), 25vh) scale(2) rotate(0deg);
+          transform: translate(calc(48vw - 16.65vw), 39vh) scale(2) rotate(0deg);
         }
         100% {
           /* 5 full rotations = 1800 degrees */
-          transform: translate(calc(48vw - 16.65vw), 25vh) scale(2) rotate(1800deg);
+          transform: translate(calc(48vw - 16.65vw), 39vh) scale(2) rotate(1800deg);
         }
       }
 
       @keyframes logo-return-home-transform {
         0% {
-          transform: translate(calc(48vw - 16.65vw), 25vh) scale(2);
+          transform: translate(calc(48vw - 16.65vw), 39vh) scale(2);
         }
         100% {
           transform: translate(0, 0) scale(1);
@@ -1321,23 +1321,21 @@
         </div>
         <div class="amiga-dialog-body">
           <div class="amiga-icon">⚠</div>
-          <div class="amiga-text">TS Ballöoniе - simpłе ballön popink gämе<br>
+          <div class="amiga-text">TS Balloonie - simple ballon popink game<br>
             &nbsp;<br>
-            Hit numbert bałłs in sеquancе för big pointz!<br>
-            Dön't miss! Cönsеcutif ballön pöps ädd pointz!<br>
+            Hit numbert balls in sequance for big pointz!<br>
+            Don't miss! Consecutif ballon pops add pointz!<br>
             &nbsp;<br>
-            Chöosе skiłł levеł viselï<br>
+            Choose skill level viseli<br>
             &nbsp;<br>
-            Vidе cödеt by Pöppy (Claudе Codе) - nö hümän еditink ät äłł<br>
-            Prömptink väs ä bi*ch<br>
+            Codet entireli by Poppy (Claude Code) - no human editink at all<br>
+            Promptink vas a bi*ch<br>
             &nbsp;<br>
-            Assеts creätеt by chätzy (ChäpGPT 5)<br>
-            apolögiks tö Jöhn L/Disnеi<br>
+            Assets createt by chatzy (ChapGPT 5)<br>
             &nbsp;<br>
-            Dеsikn by Jöhn<br>
-            för my swееtiе<br>
-            &nbsp;<br>
-            0.19.1 Seattle, WA August 22, 2025</div>
+            Desikn by John<br>
+            August 20-22, 2025<br>
+            for my sweetie</div>
         </div>
         <div class="amiga-button-bar">
           <button class="amiga-button" onclick="hideAboutDialog()">CLOSE</button>
@@ -1894,35 +1892,30 @@
       let soundMode = 'quiet'; // Default state
       let preloadedSounds = {}; // Store preloaded audio objects
 
-      function preloadGameSounds() {
-        console.log('🔊 Preloading game sounds...');
-        const soundFiles = [
-          { file: 'Buzz-01.mp3', volume: 0.7 },
-          { file: 'Buzz-02.mp3', volume: 0.7 },
-          { file: 'Buzz-03.mp3', volume: 0.7 },
-          { file: 'Fanfare-01.mp3', volume: 0.8 }
-        ];
+      function preloadBuzzSounds() {
+        console.log('🔊 Preloading buzz sounds...');
+        const soundFiles = ['Buzz-01.mp3', 'Buzz-02.mp3', 'Buzz-03.mp3'];
         
-        soundFiles.forEach(soundData => {
+        soundFiles.forEach(filename => {
           try {
-            const audio = new Audio(soundData.file);
-            audio.volume = soundData.volume; // Set volume during preload
+            const audio = new Audio(filename);
+            audio.volume = 0.7; // Set volume during preload
             audio.preload = 'auto'; // Ensure audio is preloaded
-            preloadedSounds[soundData.file] = audio;
-            console.log(`🔊 Preloaded: ${soundData.file} (volume: ${soundData.volume})`);
+            preloadedSounds[filename] = audio;
+            console.log(`🔊 Preloaded: ${filename}`);
           } catch (e) {
-            console.warn(`🔇 Failed to preload ${soundData.file}:`, e);
+            console.warn(`🔇 Failed to preload ${filename}:`, e);
           }
         });
         
-        console.log('✅ Game sound preloading complete');
+        console.log('✅ Buzz sound preloading complete');
       }
 
       function setupSoundToggle() {
         console.log('🔊 Setting up sound toggle...');
         
         // Preload sounds first
-        preloadGameSounds();
+        preloadBuzzSounds();
         
         const toggleTrack = document.querySelector('.toggle-track');
         const toggleSlider = document.getElementById('soundToggleSlider');
@@ -1984,37 +1977,6 @@
           });
         } catch (e) {
           console.log('🔇 Sound creation failed:', e);
-        }
-      }
-
-      function playVictoryFanfare() {
-        console.log('🎺 Starting victory fanfare...');
-        
-        try {
-          // Use preloaded fanfare audio
-          const audio = preloadedSounds['Fanfare-01.mp3'];
-          if (!audio) {
-            console.warn('🎺 Fanfare-01.mp3 not preloaded, creating fallback');
-            const fallbackAudio = new Audio('Fanfare-01.mp3');
-            fallbackAudio.volume = 0.8;
-            fallbackAudio.play().then(() => {
-              console.log('🎺 Victory fanfare playing (fallback)');
-            }).catch(e => {
-              console.log('🔇 Victory fanfare failed (fallback):', e);
-            });
-            return;
-          }
-          
-          // Reset to beginning in case it was played before
-          audio.currentTime = 0;
-          
-          audio.play().then(() => {
-            console.log('🎺 Victory fanfare playing!');
-          }).catch(e => {
-            console.log('🔇 Victory fanfare failed:', e);
-          });
-        } catch (e) {
-          console.log('🔇 Victory fanfare creation failed:', e);
         }
       }
 
@@ -2996,8 +2958,6 @@
           // Phase 2: Spin 5 times with smooth acceleration (after 2.5s)
           setTimeout(() => {
             logo.style.animation = "logo-spin-smooth 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards";
-            // Play victory fanfare during spinning (respects sound mode)
-            playVictoryFanfare();
           }, 2500);
           
           // Phase 3: Wait 1s, then return home (after 6.5s total)

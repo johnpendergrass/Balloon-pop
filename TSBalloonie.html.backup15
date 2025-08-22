@@ -1321,23 +1321,21 @@
         </div>
         <div class="amiga-dialog-body">
           <div class="amiga-icon">⚠</div>
-          <div class="amiga-text">TS Ballöoniе - simpłе ballön popink gämе<br>
+          <div class="amiga-text">TS Balloonie - simple ballon popink game<br>
             &nbsp;<br>
-            Hit numbert bałłs in sеquancе för big pointz!<br>
-            Dön't miss! Cönsеcutif ballön pöps ädd pointz!<br>
+            Hit numbert balls in sequance for big pointz!<br>
+            Don't miss! Consecutif ballon pops add pointz!<br>
             &nbsp;<br>
-            Chöosе skiłł levеł viselï<br>
+            Choose skill level viseli<br>
             &nbsp;<br>
-            Vidе cödеt by Pöppy (Claudе Codе) - nö hümän еditink ät äłł<br>
-            Prömptink väs ä bi*ch<br>
+            Codet entireli by Poppy (Claude Code) - no human editink at all<br>
+            Promptink vas a bi*ch<br>
             &nbsp;<br>
-            Assеts creätеt by chätzy (ChäpGPT 5)<br>
-            apolögiks tö Jöhn L/Disnеi<br>
+            Assets createt by chatzy (ChapGPT 5)<br>
             &nbsp;<br>
-            Dеsikn by Jöhn<br>
-            för my swееtiе<br>
-            &nbsp;<br>
-            0.19.1 Seattle, WA August 22, 2025</div>
+            Desikn by John<br>
+            August 20-22, 2025<br>
+            for my sweetie</div>
         </div>
         <div class="amiga-button-bar">
           <button class="amiga-button" onclick="hideAboutDialog()">CLOSE</button>
