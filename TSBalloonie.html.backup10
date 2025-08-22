@@ -97,7 +97,7 @@
       #customCursor {
         position: fixed;
         pointer-events: none;
-        z-index: 10000;
+        z-index: 9999;
         transform: translate(-50%, 0%);
         transition: opacity 0.2s ease;
         opacity: 1; /* Start visible */
@@ -181,128 +181,7 @@
         box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
       }
 
-      /* ABOUT Button Styling */
-      .about-btn {
-        margin-top: 8px;
-        padding: 6px 12px;
-        font-family: 'Comic Sans MS', 'Arial Black', sans-serif;
-        font-size: 12px;
-        font-weight: bold;
-        background: linear-gradient(145deg, #FFD700, #E6C200);
-        color: white;
-        border: 2px solid transparent;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        box-shadow: 
-          0 3px 6px rgba(0, 0, 0, 0.2),
-          inset 0 1px 2px rgba(255, 255, 255, 0.3);
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-        width: 100%;
-      }
 
-      .about-btn:hover {
-        background: linear-gradient(145deg, #FFDF00, #FFD700);
-        transform: translateY(-1px);
-      }
-
-      .about-btn:active {
-        transform: translateY(0);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-      }
-
-      /* Amiga System Error Dialog */
-      .amiga-dialog {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.7);
-        z-index: 9999;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
-
-      .amiga-dialog-content {
-        width: 650px;
-        background: #aaaaaa;
-        border: 4px solid #ffffff;
-        box-shadow: 
-          4px 4px 0px #000000,
-          inset 2px 2px 0px #ffffff,
-          inset -2px -2px 0px #666666;
-        font-family: 'Courier New', monospace;
-        font-size: 13px;
-      }
-
-      .amiga-title-bar {
-        background: linear-gradient(90deg, #0055aa, #0077cc);
-        color: #ffffff;
-        padding: 4px 8px;
-        font-weight: bold;
-        font-size: 11px;
-        text-align: center;
-        border-bottom: 2px solid #ffffff;
-        text-shadow: 1px 1px 0px #000000;
-      }
-
-      .amiga-dialog-body {
-        padding: 16px;
-        background: #aaaaaa;
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        min-height: 80px;
-      }
-
-      .amiga-icon {
-        font-size: 32px;
-        color: #ff6600;
-        font-weight: bold;
-        text-shadow: 2px 2px 0px #000000;
-        min-width: 40px;
-        text-align: center;
-      }
-
-      .amiga-text {
-        flex: 1;
-        color: #000000;
-        font-weight: bold;
-        line-height: 1.4;
-        font-family: 'Courier New', monospace;
-        text-align: center;
-      }
-
-      .amiga-button-bar {
-        padding: 12px;
-        text-align: center;
-        background: #aaaaaa;
-        border-top: 2px solid #666666;
-      }
-
-      .amiga-button {
-        background: #cccccc;
-        border: 3px outset #cccccc;
-        padding: 6px 20px;
-        font-size: 12px;
-        font-family: 'Courier New', monospace;
-        font-weight: bold;
-        cursor: pointer;
-        color: #000000;
-        min-width: 80px;
-        box-shadow: 2px 2px 0px #666666;
-      }
-
-      .amiga-button:hover {
-        background: #dddddd;
-      }
-
-      .amiga-button:active {
-        border: 3px inset #cccccc;
-        box-shadow: none;
-      }
 
       #levelStart {
         position: absolute;
@@ -1257,7 +1136,7 @@
           </label>
         </div>
         <div class="info-text" id="cheatInfoText">ALT-P(op) for cheat</div>
-        <button class="about-btn" onclick="showAboutDialog()">ABOUT</button>
+        <div class="info-text">Created by Poppy & John</div>
       </div>
       <div id="gameOver">
         <div id="gameOverText"></div>
@@ -1311,36 +1190,6 @@
         </div>
       </div>
 
-    </div>
-
-    <!-- Amiga System Error Style About Dialog -->
-    <div id="aboutDialog" class="amiga-dialog" style="display: none;">
-      <div class="amiga-dialog-content">
-        <div class="amiga-title-bar">
-          <span class="amiga-title">Powered by Amiga</span>
-        </div>
-        <div class="amiga-dialog-body">
-          <div class="amiga-icon">⚠</div>
-          <div class="amiga-text">TS Balloonie - simple ballon popink game<br>
-            &nbsp;<br>
-            Hit numbert balls in sequance for big pointz!<br>
-            Don't miss! Consecutif ballon pops add pointz!<br>
-            &nbsp;<br>
-            Choose skill level viseli<br>
-            &nbsp;<br>
-            Codet entireli by Poppy (Claude Code) - no human editink at all<br>
-            Promptink vas a bi*ch<br>
-            &nbsp;<br>
-            Assets createt by chatzy (ChapGPT 5)<br>
-            &nbsp;<br>
-            Desikn by John<br>
-            August 20-22, 2025<br>
-            for my sweetie</div>
-        </div>
-        <div class="amiga-button-bar">
-          <button class="amiga-button" onclick="hideAboutDialog()">CLOSE</button>
-        </div>
-      </div>
     </div>
 
     <script>
@@ -1978,17 +1827,6 @@
         } catch (e) {
           console.log('🔇 Sound creation failed:', e);
         }
-      }
-
-      // Amiga-style about dialog functions
-      function showAboutDialog() {
-        document.getElementById('aboutDialog').style.display = 'flex';
-        console.log('🖥️ Amiga-style about dialog opened');
-      }
-
-      function hideAboutDialog() {
-        document.getElementById('aboutDialog').style.display = 'none';
-        console.log('🖥️ Amiga-style about dialog closed');
       }
 
       // Balloon class will be implemented next
