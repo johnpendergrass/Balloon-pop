@@ -494,7 +494,7 @@
       #leaderboardBox {
         position: fixed;
         bottom: 25px;
-        left: 2%;
+        left: 25px;
         background: linear-gradient(145deg, #e8e8e8 0%, #c0c0c0 25%, #d4d4d4 50%, #a8a8a8 75%, #bcbcbc 100%);
         border: 3px solid #666;
         border-radius: 15px;
@@ -506,7 +506,8 @@
           0 2px 6px rgba(0, 0, 0, 0.2);
         font-family: 'Comic Sans MS', 'Arial Black', sans-serif;
         z-index: 30;
-        width: max(300px, 33.3vw);
+        min-width: 300px;
+        max-width: 500px;
       }
 
       .leaderboard-header {
@@ -856,25 +857,10 @@
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
       }
 
-      /* Splash Screen Logo */
-      #splashLogo {
-        position: fixed;
-        width: 33.3vw;
-        height: auto;
-        left: 2%;
-        top: 11%;
-        z-index: 15;
-        pointer-events: none;
-        display: none;
-      }
-
     </style>
   </head>
   <body>
     <div id="mainContainer">
-      <!-- Splash Screen Logo -->
-      <img id="splashLogo" src="TSBalloonie-logo.png" alt="TSBalloonie Logo">
-      
       <!-- Top Scoreboard Area -->
       <div id="scoreboardArea">
         <div id="slotMachineDisplay">
@@ -1625,9 +1611,6 @@
         const splashInfoBox = document.getElementById("splashInfoBox");
         splashInfoBox.style.display = "block"; // Show info box on splash screen
         
-        // Show splash logo
-        document.getElementById("splashLogo").style.display = "block";
-        
         // Show rocket overlay with button
         document.getElementById('rocketOverlay').style.display = 'block';
         
@@ -1698,8 +1681,6 @@
         waitingForStart = false;
         levelStartElement.style.display = "none";
         document.getElementById("splashInfoBox").style.display = "none"; // Hide info box during gameplay
-        // Hide splash logo during gameplay
-        document.getElementById("splashLogo").style.display = "none";
         // Hide rocket overlay during gameplay
         document.getElementById('rocketOverlay').style.display = 'none';
         hideGameSummary(); // Hide game summary when starting
@@ -2441,8 +2422,6 @@
             )}s`;
             gameOverText.style.color = "#FFD700";
             gameOverElement.style.display = "block";
-            // Show splash logo on victory screen
-            document.getElementById("splashLogo").style.display = "block";
             // Set fixed background for the victory screen
             setFixedSplashBackground();
           }
@@ -2459,8 +2438,6 @@
           gameOverElement.style.display = "block";
           // Show skill level box on game over screen
           document.getElementById("splashInfoBox").style.display = "block";
-          // Show splash logo on game over screen
-          document.getElementById("splashLogo").style.display = "block";
           // Set fixed background for the game over screen
           setFixedSplashBackground();
         }
