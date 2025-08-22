@@ -200,7 +200,7 @@
       #splashInfoBox {
         position: fixed;
         bottom: 25px;
-        right: 25px;
+        right: calc(2% + 88px);
         background: linear-gradient(145deg, #e8e8e8 0%, #c0c0c0 25%, #d4d4d4 50%, #a8a8a8 75%, #bcbcbc 100%);
         border: 3px solid #666;
         border-radius: 15px;
@@ -369,7 +369,7 @@
       #gameSummary {
         position: absolute;
         top: 15%;
-        right: 3%;
+        right: 2%;
         background: linear-gradient(145deg, #e8e8e8 0%, #c0c0c0 25%, #d4d4d4 50%, #a8a8a8 75%, #bcbcbc 100%);
         border: 4px solid #666;
         border-radius: 20px;
@@ -494,7 +494,7 @@
       #leaderboardBox {
         position: fixed;
         bottom: 25px;
-        left: 25px;
+        left: 2%;
         background: linear-gradient(145deg, #e8e8e8 0%, #c0c0c0 25%, #d4d4d4 50%, #a8a8a8 75%, #bcbcbc 100%);
         border: 3px solid #666;
         border-radius: 15px;
@@ -506,8 +506,7 @@
           0 2px 6px rgba(0, 0, 0, 0.2);
         font-family: 'Comic Sans MS', 'Arial Black', sans-serif;
         z-index: 30;
-        min-width: 300px;
-        max-width: 500px;
+        width: max(300px, 33.3vw);
       }
 
       .leaderboard-header {
@@ -572,43 +571,21 @@
           inset 0 -2px 4px rgba(0, 0, 0, 0.2);
       }
 
-      /* Rocket flame effect */
-      #startButton::before {
-        content: '🚀';
-        position: absolute;
-        left: 15px;
-        top: 50%;
-        transform: translateY(-50%);
-        font-size: 1.2em;
-        animation: rocket-pulse 2s infinite ease-in-out;
-      }
 
-      /* Rocket exhaust trail effect */
-      #startButton::after {
-        content: '';
-        position: absolute;
-        top: 50%;
-        right: -10px;
-        width: 20px;
-        height: 8px;
-        background: linear-gradient(90deg, 
-          rgba(255, 165, 0, 0.8) 0%, 
-          rgba(255, 69, 0, 0.6) 50%, 
-          transparent 100%);
-        border-radius: 50%;
-        transform: translateY(-50%);
-        animation: exhaust-flicker 0.5s infinite alternate;
-      }
 
       @keyframes rocket-pulse {
         0%, 100% { transform: translateY(-50%) scale(1); }
         50% { transform: translateY(-50%) scale(1.1); }
       }
 
-      @keyframes exhaust-flicker {
-        0% { opacity: 0.6; width: 20px; }
-        100% { opacity: 1; width: 30px; }
+      @keyframes rocket-mega-pulse {
+        0%, 100% { transform: scale(1) rotate(-2deg); }
+        25% { transform: scale(1.15) rotate(1deg); }
+        50% { transform: scale(1.25) rotate(-1deg); }
+        75% { transform: scale(1.1) rotate(2deg); }
       }
+
+
 
       #startButton:hover {
         background: linear-gradient(145deg, 
@@ -634,6 +611,23 @@
           0 3px 6px rgba(0, 0, 0, 0.3),
           inset 0 2px 4px rgba(0, 0, 0, 0.2);
       }
+
+      /* Enhanced Rocket Overlay */
+      #rocketOverlay {
+        position: absolute;
+        left: -60px; /* Move even further left to clear "Launch" text */
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 10;
+        pointer-events: none; /* Allow clicks to pass through to button */
+      }
+
+      #rocketIcon {
+        font-size: 3em; /* Much larger than current 1.2em */
+        animation: rocket-mega-pulse 2s infinite ease-in-out;
+        filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
+      }
+
 
 
       #leaderboardList {
@@ -676,19 +670,86 @@
         perspective: 1000px;
       }
 
+      /* Rolling Numbers Container */
       #scoreDigits {
-        font-size: 2.5em;
-        font-weight: bold;
-        color: #333;
-        text-shadow: 0 1px 2px rgba(255,255,255,0.8);
-        flex: 1;
-        text-align: center;
-        font-family: 'Arial Black', Arial, sans-serif;
         display: flex;
         justify-content: center;
         align-items: center;
         gap: 6px;
         height: 80px;
+        flex: 1;
+      }
+
+      /* Simplified Digit Container */
+      .digit-container {
+        width: 60px;
+        height: 80px;
+        position: relative;
+      }
+
+      /* The visible window showing the digit */
+      .digit-window {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(145deg, #1a1a1a 0%, #000000 50%, #1a1a1a 100%);
+        border: 3px solid #666;
+        border-radius: 8px;
+        overflow: hidden;
+        position: relative;
+        box-shadow: 
+          inset 0 4px 8px rgba(0, 0, 0, 0.8),
+          inset 0 -2px 4px rgba(255, 255, 255, 0.2),
+          0 2px 6px rgba(0, 0, 0, 0.4);
+      }
+
+      /* The spinning wheel strip */
+      .digit-wheel {
+        position: absolute;
+        width: 100%;
+        height: 800px; /* 10 digits × 80px each */
+        top: 0;
+        left: 0;
+        transition: transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      }
+
+      /* Individual digit in the wheel */
+      .digit-number {
+        position: absolute;
+        width: 100%;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 36px;
+        font-weight: bold;
+        color: #00ff00;
+        text-shadow: 0 0 8px #00ff00, 0 0 16px #00ff00;
+        font-family: 'Courier New', monospace;
+      }
+
+      /* Position each digit in the wheel */
+      .digit-number:nth-child(1) { top: 0px; }      /* 0 */
+      .digit-number:nth-child(2) { top: 80px; }     /* 1 */
+      .digit-number:nth-child(3) { top: 160px; }    /* 2 */
+      .digit-number:nth-child(4) { top: 240px; }    /* 3 */
+      .digit-number:nth-child(5) { top: 320px; }    /* 4 */
+      .digit-number:nth-child(6) { top: 400px; }    /* 5 */
+      .digit-number:nth-child(7) { top: 480px; }    /* 6 */
+      .digit-number:nth-child(8) { top: 560px; }    /* 7 */
+      .digit-number:nth-child(9) { top: 640px; }    /* 8 */
+      .digit-number:nth-child(10) { top: 720px; }   /* 9 */
+
+      /* Comma Separators */
+      .comma-separator {
+        width: 20px;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+        color: #888;
+        font-weight: bold;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
       }
 
       #slotMachineDisplay::before {
@@ -862,10 +923,25 @@
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
       }
 
+      /* Splash Screen Logo */
+      #splashLogo {
+        position: fixed;
+        width: 33.3vw;
+        height: auto;
+        left: 2%;
+        top: 11%;
+        z-index: 15;
+        pointer-events: none;
+        display: none;
+      }
+
     </style>
   </head>
   <body>
     <div id="mainContainer">
+      <!-- Splash Screen Logo -->
+      <img id="splashLogo" src="TSBalloonie-logo.png" alt="TSBalloonie Logo">
+      
       <!-- Top Scoreboard Area -->
       <div id="scoreboardArea">
         <div id="slotMachineDisplay">
@@ -892,6 +968,9 @@
       </div>
       <div id="levelStart">
         <button id="startButton" onclick="startLevel()">Launch Next Level ➤</button>
+        <div id="rocketOverlay">
+          <div id="rocketIcon">🚀</div>
+        </div>
       </div>
       
       <!-- Info box in bottom right corner -->
@@ -1273,6 +1352,11 @@
           setRandomBackground();
         }
       }
+      
+      function setFixedSplashBackground() {
+        console.log('Setting fixed splash background: TSBalloonie-background.png');
+        applyBackgroundImage('TSBalloonie-background.png');
+      }
 
       // Level system functions
       function getLevelBalloonCount(level) {
@@ -1531,8 +1615,8 @@
         // Create starfield initially (will be hidden if backgrounds work)
         createStarField();
         
-        // Set splash screen background
-        setSplashBackground();
+        // Set fixed splash screen background
+        setFixedSplashBackground();
         
         // Initialize score display
         initializeScoreDisplay();
@@ -1608,6 +1692,15 @@
         const splashInfoBox = document.getElementById("splashInfoBox");
         splashInfoBox.style.display = "block"; // Show info box on splash screen
         
+        // Show splash logo
+        document.getElementById("splashLogo").style.display = "block";
+        
+        // Show rocket overlay with button
+        document.getElementById('rocketOverlay').style.display = 'block';
+        
+        // Set fixed background for level start screen
+        setFixedSplashBackground();
+        
         // Debug element visibility and positioning
         console.log('👁️ Element visibility check:');
         console.log(`  splashInfoBox: display=${splashInfoBox.style.display}, visible=${splashInfoBox.offsetWidth > 0}`);
@@ -1661,24 +1754,7 @@
         } 
         updateTopTimer(); // Reset timer display
 
-        // Select and store background for this entire level
-        if (currentLevel === 1) {
-          // For level 1, use splash background if available, otherwise random
-          if (splashBackground) {
-            currentLevelBackground = splashBackground;
-            console.log('Level 1 using splash background:', splashBackground);
-          } else {
-            currentLevelBackground = selectRandomBackground();
-            console.log('Level 1 using random background:', currentLevelBackground);
-          }
-        } else {
-          // For other levels, select a new random background
-          currentLevelBackground = selectRandomBackground();
-          console.log(`Level ${currentLevel} using background:`, currentLevelBackground);
-        }
-        
-        // Apply the selected background for this level
-        applyBackgroundImage(currentLevelBackground);
+        // Background will be set when gameplay actually starts (in startLevel)
 
         // Show leaderboard before starting
         showLeaderboard();
@@ -1689,6 +1765,10 @@
         waitingForStart = false;
         levelStartElement.style.display = "none";
         document.getElementById("splashInfoBox").style.display = "none"; // Hide info box during gameplay
+        // Hide splash logo during gameplay
+        document.getElementById("splashLogo").style.display = "none";
+        // Hide rocket overlay during gameplay
+        document.getElementById('rocketOverlay').style.display = 'none';
         hideGameSummary(); // Hide game summary when starting
         hideLeaderboard();
         // Note: UI visibility will be handled by game state
@@ -1700,8 +1780,9 @@
           longestStreak = 0;
         }
 
-        // Keep the same background that was set in showLevelStart()
-        console.log(`Starting level ${currentLevel} with consistent background:`, currentLevelBackground);
+        // Set random gameplay background for this level
+        currentLevelBackground = selectRandomBackground();
+        console.log(`Starting level ${currentLevel} with gameplay background:`, currentLevelBackground);
         applyBackgroundImage(currentLevelBackground);
 
         startGame();
@@ -2160,11 +2241,44 @@
       // SLOT MACHINE SCORING SYSTEM
       // ============================================================================
       
-      // Initialize simplified score display
+      // Initialize simplified spinning score display
       function initializeScoreDisplay() {
-        // Initialize with simple text display first
-        scoreDigitsElement.textContent = currentScore.toLocaleString();
-        console.log('Score display initialized with:', currentScore.toLocaleString());
+        const maxDigits = 15; // Handles up to 999 trillion
+        scoreDigitsElement.innerHTML = '';
+        digitContainers = [];
+        
+        for (let i = 0; i < maxDigits; i++) {
+          // Add comma separator every 3 digits (from right)
+          if (i > 0 && i % 3 === 0) {
+            const comma = document.createElement('div');
+            comma.className = 'comma-separator';
+            comma.textContent = ',';
+            scoreDigitsElement.appendChild(comma);
+          }
+          
+          const container = document.createElement('div');
+          container.className = 'digit-container';
+          
+          const window = document.createElement('div');
+          window.className = 'digit-window';
+          
+          const wheel = document.createElement('div');
+          wheel.className = 'digit-wheel';
+          
+          // Create 10 digits for the wheel (0-9)
+          for (let digit = 0; digit <= 9; digit++) {
+            const digitElement = document.createElement('div');
+            digitElement.className = 'digit-number';
+            digitElement.textContent = digit;
+            wheel.appendChild(digitElement);
+          }
+          
+          window.appendChild(wheel);
+          container.appendChild(window);
+          scoreDigitsElement.appendChild(container);
+          
+          digitContainers.push({container, wheel}); // Store in correct order (left to right)
+        }
       }
       
       // Roll individual wheel to target number with settling effect
@@ -2189,9 +2303,26 @@
       
       // Update score display with rolling animation
       function updateSlotMachineDisplay() {
-        // Simplified score display for debugging
-        scoreDigitsElement.textContent = currentScore.toLocaleString();
-        console.log(`Score display updated: ${currentScore.toLocaleString()}`);
+        const scoreStr = currentScore.toString().padStart(15, '0');
+        const previousStr = previousScore.toString().padStart(15, '0');
+        
+        console.log(`Score update: ${previousScore.toLocaleString()} → ${currentScore.toLocaleString()}`);
+        
+        // Find which digits changed and animate them
+        for (let i = 0; i < 15; i++) {
+          const currentDigit = parseInt(scoreStr[i]);
+          const previousDigit = parseInt(previousStr[i]);
+          
+          if (currentDigit !== previousDigit) {
+            // Add small delay based on position for cascading effect
+            const delay = (14 - i) * 50; // Right-most digits first
+            console.log(`Position ${i}: ${previousDigit} → ${currentDigit} (delay: ${delay}ms)`);
+            rollDigit(digitContainers[i], currentDigit, delay);
+          }
+        }
+        
+        
+        previousScore = currentScore;
       }
       
       // Update custom cursor based on streak
@@ -2384,6 +2515,10 @@
       function endGame(playerWon) {
         gameRunning = false;
         if (animationId) cancelAnimationFrame(animationId);
+        
+        // Clear all balloons from screen
+        balloons = [];
+        ctx.clearRect(0, 0, cssWidth(), cssHeight());
 
         const levelTime = performance.now() - levelStartTime;
         cumulativeTime += levelTime;
@@ -2406,6 +2541,8 @@
             // Auto-advance to next level after 2 seconds
             setTimeout(() => {
               gameOverElement.style.display = "none";
+              // Ensure skill level box is visible during transition
+              document.getElementById("splashInfoBox").style.display = "block";
               showLevelStart();
             }, 2000);
           } else {
@@ -2421,8 +2558,10 @@
             )}s`;
             gameOverText.style.color = "#FFD700";
             gameOverElement.style.display = "block";
-            // Set a random background for the victory screen
-            setRandomBackground();
+            // Show splash logo on victory screen
+            document.getElementById("splashLogo").style.display = "block";
+            // Set fixed background for the victory screen
+            setFixedSplashBackground();
           }
         } else {
           // Game failed! Show final level summary
@@ -2437,8 +2576,10 @@
           gameOverElement.style.display = "block";
           // Show skill level box on game over screen
           document.getElementById("splashInfoBox").style.display = "block";
-          // Set a random background for the game over screen
-          setRandomBackground();
+          // Show splash logo on game over screen
+          document.getElementById("splashLogo").style.display = "block";
+          // Set fixed background for the game over screen
+          setFixedSplashBackground();
         }
       }
 
@@ -2485,8 +2626,8 @@
         balloons = [];
         ctx.clearRect(0, 0, cssWidth(), cssHeight());
         
-        // Reset background to fresh splash background
-        setSplashBackground();
+        // Reset background to fixed splash background
+        setFixedSplashBackground();
         
         // Reset slot machine display
         updateSlotMachineDisplay();
@@ -2614,6 +2755,9 @@
 
       // Show game summary with comprehensive statistics
       function showGameSummary(levelTime, isGameOver = false) {
+        // Set fixed background for level completion summary
+        setFixedSplashBackground();
+        
         const totalLevelPoints = levelBalloonPoints + levelStreakPoints + levelSequencePoints;
         const totalGameTime = performance.now() - gameStartTime;
         

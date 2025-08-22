@@ -670,19 +670,86 @@
         perspective: 1000px;
       }
 
+      /* Rolling Numbers Container */
       #scoreDigits {
-        font-size: 2.5em;
-        font-weight: bold;
-        color: #333;
-        text-shadow: 0 1px 2px rgba(255,255,255,0.8);
-        flex: 1;
-        text-align: center;
-        font-family: 'Arial Black', Arial, sans-serif;
         display: flex;
         justify-content: center;
         align-items: center;
         gap: 6px;
         height: 80px;
+        flex: 1;
+      }
+
+      /* Simplified Digit Container */
+      .digit-container {
+        width: 60px;
+        height: 80px;
+        position: relative;
+      }
+
+      /* The visible window showing the digit */
+      .digit-window {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(145deg, #1a1a1a 0%, #000000 50%, #1a1a1a 100%);
+        border: 3px solid #666;
+        border-radius: 8px;
+        overflow: hidden;
+        position: relative;
+        box-shadow: 
+          inset 0 4px 8px rgba(0, 0, 0, 0.8),
+          inset 0 -2px 4px rgba(255, 255, 255, 0.2),
+          0 2px 6px rgba(0, 0, 0, 0.4);
+      }
+
+      /* The spinning wheel strip */
+      .digit-wheel {
+        position: absolute;
+        width: 100%;
+        height: 800px; /* 10 digits × 80px each */
+        top: 0;
+        left: 0;
+        transition: transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      }
+
+      /* Individual digit in the wheel */
+      .digit-number {
+        position: absolute;
+        width: 100%;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 36px;
+        font-weight: bold;
+        color: #00ff00;
+        text-shadow: 0 0 8px #00ff00, 0 0 16px #00ff00;
+        font-family: 'Courier New', monospace;
+      }
+
+      /* Position each digit in the wheel */
+      .digit-number:nth-child(1) { top: 0px; }      /* 0 */
+      .digit-number:nth-child(2) { top: 80px; }     /* 1 */
+      .digit-number:nth-child(3) { top: 160px; }    /* 2 */
+      .digit-number:nth-child(4) { top: 240px; }    /* 3 */
+      .digit-number:nth-child(5) { top: 320px; }    /* 4 */
+      .digit-number:nth-child(6) { top: 400px; }    /* 5 */
+      .digit-number:nth-child(7) { top: 480px; }    /* 6 */
+      .digit-number:nth-child(8) { top: 560px; }    /* 7 */
+      .digit-number:nth-child(9) { top: 640px; }    /* 8 */
+      .digit-number:nth-child(10) { top: 720px; }   /* 9 */
+
+      /* Comma Separators */
+      .comma-separator {
+        width: 20px;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+        color: #888;
+        font-weight: bold;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
       }
 
       #slotMachineDisplay::before {
@@ -2174,11 +2241,44 @@
       // SLOT MACHINE SCORING SYSTEM
       // ============================================================================
       
-      // Initialize simplified score display
+      // Initialize simplified spinning score display
       function initializeScoreDisplay() {
-        // Initialize with simple text display first
-        scoreDigitsElement.textContent = currentScore.toLocaleString();
-        console.log('Score display initialized with:', currentScore.toLocaleString());
+        const maxDigits = 15; // Handles up to 999 trillion
+        scoreDigitsElement.innerHTML = '';
+        digitContainers = [];
+        
+        for (let i = 0; i < maxDigits; i++) {
+          // Add comma separator every 3 digits (from right)
+          if (i > 0 && i % 3 === 0) {
+            const comma = document.createElement('div');
+            comma.className = 'comma-separator';
+            comma.textContent = ',';
+            scoreDigitsElement.appendChild(comma);
+          }
+          
+          const container = document.createElement('div');
+          container.className = 'digit-container';
+          
+          const window = document.createElement('div');
+          window.className = 'digit-window';
+          
+          const wheel = document.createElement('div');
+          wheel.className = 'digit-wheel';
+          
+          // Create 10 digits for the wheel (0-9)
+          for (let digit = 0; digit <= 9; digit++) {
+            const digitElement = document.createElement('div');
+            digitElement.className = 'digit-number';
+            digitElement.textContent = digit;
+            wheel.appendChild(digitElement);
+          }
+          
+          window.appendChild(wheel);
+          container.appendChild(window);
+          scoreDigitsElement.appendChild(container);
+          
+          digitContainers.push({container, wheel}); // Store in correct order (left to right)
+        }
       }
       
       // Roll individual wheel to target number with settling effect
@@ -2203,9 +2303,26 @@
       
       // Update score display with rolling animation
       function updateSlotMachineDisplay() {
-        // Simplified score display for debugging
-        scoreDigitsElement.textContent = currentScore.toLocaleString();
-        console.log(`Score display updated: ${currentScore.toLocaleString()}`);
+        const scoreStr = currentScore.toString().padStart(15, '0');
+        const previousStr = previousScore.toString().padStart(15, '0');
+        
+        console.log(`Score update: ${previousScore.toLocaleString()} → ${currentScore.toLocaleString()}`);
+        
+        // Find which digits changed and animate them
+        for (let i = 0; i < 15; i++) {
+          const currentDigit = parseInt(scoreStr[i]);
+          const previousDigit = parseInt(previousStr[i]);
+          
+          if (currentDigit !== previousDigit) {
+            // Add small delay based on position for cascading effect
+            const delay = (14 - i) * 50; // Right-most digits first
+            console.log(`Position ${i}: ${previousDigit} → ${currentDigit} (delay: ${delay}ms)`);
+            rollDigit(digitContainers[i], currentDigit, delay);
+          }
+        }
+        
+        
+        previousScore = currentScore;
       }
       
       // Update custom cursor based on streak
@@ -2512,10 +2629,14 @@
         // Reset background to fixed splash background
         setFixedSplashBackground();
         
-        // Reset slot machine display
+        // Reset slot machine display - force all digits to show 0
+        // First reinitialize the odometer structure
+        initializeScoreDisplay();
+        // Then update displays
         updateSlotMachineDisplay();
         updateCursor();
         updateTopTimer();
+        updateTopLevel(); // Fix: Update level display to show 1
         
         // Start the level (keeping the same level number)
         showLevelStart();

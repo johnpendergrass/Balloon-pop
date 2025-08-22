@@ -200,7 +200,7 @@
       #splashInfoBox {
         position: fixed;
         bottom: 25px;
-        right: 25px;
+        right: calc(2% + 88px);
         background: linear-gradient(145deg, #e8e8e8 0%, #c0c0c0 25%, #d4d4d4 50%, #a8a8a8 75%, #bcbcbc 100%);
         border: 3px solid #666;
         border-radius: 15px;
@@ -369,7 +369,7 @@
       #gameSummary {
         position: absolute;
         top: 15%;
-        right: 3%;
+        right: 2%;
         background: linear-gradient(145deg, #e8e8e8 0%, #c0c0c0 25%, #d4d4d4 50%, #a8a8a8 75%, #bcbcbc 100%);
         border: 4px solid #666;
         border-radius: 20px;
@@ -494,7 +494,7 @@
       #leaderboardBox {
         position: fixed;
         bottom: 25px;
-        left: 25px;
+        left: 2%;
         background: linear-gradient(145deg, #e8e8e8 0%, #c0c0c0 25%, #d4d4d4 50%, #a8a8a8 75%, #bcbcbc 100%);
         border: 3px solid #666;
         border-radius: 15px;
@@ -506,8 +506,7 @@
           0 2px 6px rgba(0, 0, 0, 0.2);
         font-family: 'Comic Sans MS', 'Arial Black', sans-serif;
         z-index: 30;
-        min-width: 300px;
-        max-width: 500px;
+        width: max(300px, 33.3vw);
       }
 
       .leaderboard-header {
@@ -573,22 +572,6 @@
       }
 
 
-      /* Rocket exhaust trail effect */
-      #startButton::after {
-        content: '';
-        position: absolute;
-        top: 50%;
-        right: -10px;
-        width: 20px;
-        height: 8px;
-        background: linear-gradient(90deg, 
-          rgba(255, 165, 0, 0.8) 0%, 
-          rgba(255, 69, 0, 0.6) 50%, 
-          transparent 100%);
-        border-radius: 50%;
-        transform: translateY(-50%);
-        animation: exhaust-flicker 0.5s infinite alternate;
-      }
 
       @keyframes rocket-pulse {
         0%, 100% { transform: translateY(-50%) scale(1); }
@@ -603,10 +586,6 @@
       }
 
 
-      @keyframes exhaust-flicker {
-        0% { opacity: 0.6; width: 20px; }
-        100% { opacity: 1; width: 30px; }
-      }
 
       #startButton:hover {
         background: linear-gradient(145deg, 
@@ -636,7 +615,7 @@
       /* Enhanced Rocket Overlay */
       #rocketOverlay {
         position: absolute;
-        left: -40px; /* Move further left to clear "Launch" text */
+        left: -60px; /* Move even further left to clear "Launch" text */
         top: 50%;
         transform: translateY(-50%);
         z-index: 10;
@@ -877,10 +856,25 @@
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
       }
 
+      /* Splash Screen Logo */
+      #splashLogo {
+        position: fixed;
+        width: 33.3vw;
+        height: auto;
+        left: 2%;
+        top: 11%;
+        z-index: 15;
+        pointer-events: none;
+        display: none;
+      }
+
     </style>
   </head>
   <body>
     <div id="mainContainer">
+      <!-- Splash Screen Logo -->
+      <img id="splashLogo" src="TSBalloonie-logo.png" alt="TSBalloonie Logo">
+      
       <!-- Top Scoreboard Area -->
       <div id="scoreboardArea">
         <div id="slotMachineDisplay">
@@ -1291,6 +1285,11 @@
           setRandomBackground();
         }
       }
+      
+      function setFixedSplashBackground() {
+        console.log('Setting fixed splash background: TSBalloonie-background.png');
+        applyBackgroundImage('TSBalloonie-background.png');
+      }
 
       // Level system functions
       function getLevelBalloonCount(level) {
@@ -1549,8 +1548,8 @@
         // Create starfield initially (will be hidden if backgrounds work)
         createStarField();
         
-        // Set splash screen background
-        setSplashBackground();
+        // Set fixed splash screen background
+        setFixedSplashBackground();
         
         // Initialize score display
         initializeScoreDisplay();
@@ -1626,8 +1625,14 @@
         const splashInfoBox = document.getElementById("splashInfoBox");
         splashInfoBox.style.display = "block"; // Show info box on splash screen
         
+        // Show splash logo
+        document.getElementById("splashLogo").style.display = "block";
+        
         // Show rocket overlay with button
         document.getElementById('rocketOverlay').style.display = 'block';
+        
+        // Set fixed background for level start screen
+        setFixedSplashBackground();
         
         // Debug element visibility and positioning
         console.log('👁️ Element visibility check:');
@@ -1682,24 +1687,7 @@
         } 
         updateTopTimer(); // Reset timer display
 
-        // Select and store background for this entire level
-        if (currentLevel === 1) {
-          // For level 1, use splash background if available, otherwise random
-          if (splashBackground) {
-            currentLevelBackground = splashBackground;
-            console.log('Level 1 using splash background:', splashBackground);
-          } else {
-            currentLevelBackground = selectRandomBackground();
-            console.log('Level 1 using random background:', currentLevelBackground);
-          }
-        } else {
-          // For other levels, select a new random background
-          currentLevelBackground = selectRandomBackground();
-          console.log(`Level ${currentLevel} using background:`, currentLevelBackground);
-        }
-        
-        // Apply the selected background for this level
-        applyBackgroundImage(currentLevelBackground);
+        // Background will be set when gameplay actually starts (in startLevel)
 
         // Show leaderboard before starting
         showLeaderboard();
@@ -1710,6 +1698,8 @@
         waitingForStart = false;
         levelStartElement.style.display = "none";
         document.getElementById("splashInfoBox").style.display = "none"; // Hide info box during gameplay
+        // Hide splash logo during gameplay
+        document.getElementById("splashLogo").style.display = "none";
         // Hide rocket overlay during gameplay
         document.getElementById('rocketOverlay').style.display = 'none';
         hideGameSummary(); // Hide game summary when starting
@@ -1723,8 +1713,9 @@
           longestStreak = 0;
         }
 
-        // Keep the same background that was set in showLevelStart()
-        console.log(`Starting level ${currentLevel} with consistent background:`, currentLevelBackground);
+        // Set random gameplay background for this level
+        currentLevelBackground = selectRandomBackground();
+        console.log(`Starting level ${currentLevel} with gameplay background:`, currentLevelBackground);
         applyBackgroundImage(currentLevelBackground);
 
         startGame();
@@ -2407,6 +2398,10 @@
       function endGame(playerWon) {
         gameRunning = false;
         if (animationId) cancelAnimationFrame(animationId);
+        
+        // Clear all balloons from screen
+        balloons = [];
+        ctx.clearRect(0, 0, cssWidth(), cssHeight());
 
         const levelTime = performance.now() - levelStartTime;
         cumulativeTime += levelTime;
@@ -2429,6 +2424,8 @@
             // Auto-advance to next level after 2 seconds
             setTimeout(() => {
               gameOverElement.style.display = "none";
+              // Ensure skill level box is visible during transition
+              document.getElementById("splashInfoBox").style.display = "block";
               showLevelStart();
             }, 2000);
           } else {
@@ -2444,8 +2441,10 @@
             )}s`;
             gameOverText.style.color = "#FFD700";
             gameOverElement.style.display = "block";
-            // Set a random background for the victory screen
-            setRandomBackground();
+            // Show splash logo on victory screen
+            document.getElementById("splashLogo").style.display = "block";
+            // Set fixed background for the victory screen
+            setFixedSplashBackground();
           }
         } else {
           // Game failed! Show final level summary
@@ -2460,8 +2459,10 @@
           gameOverElement.style.display = "block";
           // Show skill level box on game over screen
           document.getElementById("splashInfoBox").style.display = "block";
-          // Set a random background for the game over screen
-          setRandomBackground();
+          // Show splash logo on game over screen
+          document.getElementById("splashLogo").style.display = "block";
+          // Set fixed background for the game over screen
+          setFixedSplashBackground();
         }
       }
 
@@ -2508,8 +2509,8 @@
         balloons = [];
         ctx.clearRect(0, 0, cssWidth(), cssHeight());
         
-        // Reset background to fresh splash background
-        setSplashBackground();
+        // Reset background to fixed splash background
+        setFixedSplashBackground();
         
         // Reset slot machine display
         updateSlotMachineDisplay();
@@ -2637,6 +2638,9 @@
 
       // Show game summary with comprehensive statistics
       function showGameSummary(levelTime, isGameOver = false) {
+        // Set fixed background for level completion summary
+        setFixedSplashBackground();
+        
         const totalLevelPoints = levelBalloonPoints + levelStreakPoints + levelSequencePoints;
         const totalGameTime = performance.now() - gameStartTime;
         
